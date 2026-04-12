@@ -26,4 +26,5 @@
 - 已通过：`npm run build`。
 - 已通过：Playwright 访问本地页面并截图，canvas 采样 `14400/14400` 非空。
 - 已通过：后端 `/api/run` HTTP 烟测，返回 `accept` 和 5 个事件。
-- 待执行：GitHub 仓库创建与推送。
+- 已通过：创建公开 GitHub 仓库 `https://github.com/XXYoLoong/q-loom-agents`。
+- 已通过：提交 `cd1a2bb` 并推送 `main` 分支。

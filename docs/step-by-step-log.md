@@ -64,3 +64,10 @@ Q-Loom Agents
 - Observation: the command-line console displayed some Chinese response fields as mojibake, but the HTTP pipeline succeeded; browser UTF-8 usage is expected to render correctly.
 - Repository: initialized a new local Git repository on branch `main`.
 - Next step: create the public GitHub repository `q-loom-agents`, commit the v0.1.0 work, and push.
+
+### 2026-04-13 Round 9
+
+- Repository: created public GitHub repository `https://github.com/XXYoLoong/q-loom-agents`.
+- Commit: created root commit `cd1a2bb` with message `v0.1.0 q-loom agents foundation`.
+- Publish: pushed branch `main` to `origin/main`.
+- Delivery state: v0.1.0 source, documentation, prompts, readable sample data, backend, frontend, and license are now available on GitHub.
