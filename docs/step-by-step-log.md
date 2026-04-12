@@ -71,3 +71,8 @@ Q-Loom Agents
 - Commit: created root commit `cd1a2bb` with message `v0.1.0 q-loom agents foundation`.
 - Publish: pushed branch `main` to `origin/main`.
 - Delivery state: v0.1.0 source, documentation, prompts, readable sample data, backend, frontend, and license are now available on GitHub.
+
+### 2026-04-13 Round 10
+
+- Adjustment: replaced the abbreviated license file with the standard Apache License 2.0 text so GitHub can recognize the repository license correctly.
+- Next step: commit and push the license recognition fix.

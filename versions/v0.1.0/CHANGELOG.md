@@ -28,3 +28,4 @@
 - 已通过：后端 `/api/run` HTTP 烟测，返回 `accept` 和 5 个事件。
 - 已通过：创建公开 GitHub 仓库 `https://github.com/XXYoLoong/q-loom-agents`。
 - 已通过：提交 `cd1a2bb` 并推送 `main` 分支。
+- 已修正：将 `LICENSE` 替换为标准 Apache License 2.0 全文，便于 GitHub 识别许可证。
