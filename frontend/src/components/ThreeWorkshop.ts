@@ -436,6 +436,7 @@ function drawStatusTexture(
   events: AgentEvent[],
   result: AgentRunResponse | null,
   busy: boolean,
+  stageIndex: number,
 ) {
   const ctx = canvas.getContext("2d");
   if (!ctx) {
@@ -454,7 +455,7 @@ function drawStatusTexture(
   ctx.font = "24px Microsoft YaHei, sans-serif";
   ctx.fillStyle = busy ? "#ffd36b" : "#bdf7ee";
   ctx.fillText(
-    busy ? "LIVE / CLOSED LOOP RUNNING" : "READY / CLICK AGENT TO RUN",
+    busy ? `LIVE / STAGE ${Math.max(stageIndex, 1)} OF 4` : "READY / CLICK AGENT TO RUN",
     58,
     122,
   );
@@ -530,6 +531,9 @@ export class ThreeWorkshop {
   private events: AgentEvent[] = [];
   private result: AgentRunResponse | null = null;
   private busy = false;
+  private stageIndex = 0;
+  private stageBeacons: THREE.Mesh[] = [];
+  private stageLinks: THREE.Mesh[] = [];
   private frame = 0;
   private animationId = 0;
   private tooltip: HTMLDivElement;
@@ -562,11 +566,12 @@ export class ThreeWorkshop {
     this.animate();
   }
 
-  setState(events: AgentEvent[], result: AgentRunResponse | null, busy: boolean) {
+  setState(events: AgentEvent[], result: AgentRunResponse | null, busy: boolean, stageIndex: number) {
     this.events = events;
     this.result = result;
     this.busy = busy;
-    drawStatusTexture(this.screenCanvas, this.events, this.result, this.busy);
+    this.stageIndex = stageIndex;
+    drawStatusTexture(this.screenCanvas, this.events, this.result, this.busy, this.stageIndex);
     this.screenTexture.needsUpdate = true;
   }
 
@@ -709,12 +714,45 @@ export class ThreeWorkshop {
       });
     });
 
+    this.createStagePath([
+      new THREE.Vector3(0, 0.08, 1.28),
+      new THREE.Vector3(-3.22, 0.08, 2.42),
+      new THREE.Vector3(3.78, 0.08, 0.2),
+      new THREE.Vector3(-4.2, 0.08, -0.05),
+    ]);
+
     this.scene.traverse((object) => {
       if (object instanceof THREE.Mesh) {
         object.castShadow = true;
         object.receiveShadow = true;
       }
     });
+  }
+
+  private createStagePath(points: THREE.Vector3[]) {
+    points.forEach((point, index) => {
+      const beacon = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.16, 0.16, 0.035, 32),
+        emissiveMat(AGENT_COLORS[index] ?? 0xffffff, 0.55),
+      );
+      beacon.position.copy(point);
+      this.stageBeacons.push(beacon);
+      this.scene.add(beacon);
+    });
+
+    for (let i = 0; i < points.length - 1; i += 1) {
+      const curve = new THREE.CatmullRomCurve3([
+        points[i],
+        points[i].clone().lerp(points[i + 1], 0.5).add(new THREE.Vector3(0, 0.035, 0)),
+        points[i + 1],
+      ]);
+      const link = new THREE.Mesh(
+        new THREE.TubeGeometry(curve, 32, 0.018, 10, false),
+        emissiveMat(0x65e6df, 0.28),
+      );
+      this.stageLinks.push(link);
+      this.scene.add(link);
+    }
   }
 
   private onPointerMove = (event: PointerEvent) => {
@@ -770,9 +808,13 @@ export class ThreeWorkshop {
     this.rigs.forEach((rig, index) => {
       const event = this.events.find((item) => item.agent === rig.agent);
       const active = Boolean(event && event.status !== "idle");
+      const currentStageAgent = this.events[this.stageIndex - 1]?.agent;
+      const spotlighted = currentStageAgent === rig.agent;
       const tempo = active ? 5.4 : 1.5;
-      rig.root.position.y = rig.baseY + Math.sin(this.frame * tempo + index) * (active ? 0.028 : 0.012);
+      rig.root.position.y =
+        rig.baseY + Math.sin(this.frame * tempo + index) * (spotlighted ? 0.07 : active ? 0.028 : 0.012);
       rig.head.rotation.z = Math.sin(this.frame * 2 + index) * 0.035;
+      rig.body.scale.setScalar(spotlighted ? 1.08 : 1);
 
       if (rig.role === "generator") {
         rig.leftHand.position.y = 0.84 + Math.sin(this.frame * 18) * 0.035;
@@ -795,6 +837,20 @@ export class ThreeWorkshop {
         rig.prop.rotation.z = -0.3 + Math.sin(this.frame * 5.2) * 0.85;
         rig.rightHand.rotation.z = Math.sin(this.frame * 5.2) * 0.32;
       }
+    });
+
+    this.stageBeacons.forEach((beacon, index) => {
+      const active = this.stageIndex === index + 1;
+      const completed = this.stageIndex > index + 1;
+      const scale = active ? 1.35 + Math.sin(this.frame * 8) * 0.18 : completed ? 1.12 : 0.88;
+      beacon.scale.set(scale, 1, scale);
+      const beaconMaterial = beacon.material as THREE.MeshStandardMaterial;
+      beaconMaterial.emissiveIntensity = active ? 1.35 : completed ? 0.75 : 0.22;
+    });
+
+    this.stageLinks.forEach((link, index) => {
+      const material = link.material as THREE.MeshStandardMaterial;
+      material.emissiveIntensity = this.stageIndex > index + 1 ? 0.9 : this.stageIndex === index + 1 ? 0.55 : 0.18;
     });
 
     this.renderer.render(this.scene, this.camera);

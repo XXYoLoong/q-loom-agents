@@ -19,7 +19,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.core.config import settings
 from backend.app.graph import run_pipeline
+from backend.app.schemas.review import (
+    ReviewJumpRequest,
+    ReviewNavigateRequest,
+    ReviewSaveRequest,
+    ReviewState,
+)
 from backend.app.schemas.run import AgentEvent, AgentRunRequest, AgentRunResponse
+from backend.app.services.review_store import review_store
 
 
 app = FastAPI(title=settings.app_name)
@@ -52,3 +59,22 @@ def status() -> list[AgentEvent]:
 def run(request: AgentRunRequest) -> AgentRunResponse:
     return run_pipeline(request)
 
+
+@app.get("/api/review", response_model=ReviewState)
+def get_review_state() -> ReviewState:
+    return review_store.load()
+
+
+@app.post("/api/review/save", response_model=ReviewState)
+def save_review_sample(request: ReviewSaveRequest) -> ReviewState:
+    return review_store.save_sample(request)
+
+
+@app.post("/api/review/navigate", response_model=ReviewState)
+def navigate_review(request: ReviewNavigateRequest) -> ReviewState:
+    return review_store.navigate(request)
+
+
+@app.post("/api/review/jump", response_model=ReviewState)
+def jump_review(request: ReviewJumpRequest) -> ReviewState:
+    return review_store.jump(request)

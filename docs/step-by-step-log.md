@@ -165,3 +165,31 @@ Q-Loom Agents
 - Playwright metrics: canvas `21600/21600` nonblank, tooltip visible, and wall-screen overlay opened.
 - Commit: created `2a50f31` with message `v0.3.0 anime workshop polish`.
 - Publish: pushed v0.3.0 to GitHub `origin/main`.
+
+### 2026-04-13 Round 23
+
+- Request received: user rejected v0.3.0 as still mostly cosmetic and called out missing multi-stage flow visualization plus missing long-running human review workflow.
+- Diagnosis: core product gaps are backend persistence and front-end review operations, not model color/style.
+- v0.4.0 target: add persistent review queue, staged agent timeline playback, sample-by-sample human review with save/previous/next/return-to-edit behavior, and resume after app restart.
+- Next step: implement backend review store and API before adjusting the 3D UI.
+
+### 2026-04-13 Round 24
+
+- Implementation: added backend review schemas and `ReviewStore`, persisting state to `output/review/review_state.json`.
+- API: added `GET /api/review`, `POST /api/review/save`, `POST /api/review/navigate`, and `POST /api/review/jump`.
+- Pipeline integration: `/api/run` now appends or refreshes the generated sample in the review queue automatically.
+- Frontend: added staged timeline playback for generator, quality monitor, acceptance, and supervisor before showing final results.
+- Frontend: added `ReviewDesk` inside the wall-screen full-screen panel for sample-by-sample human review with A/B fields, notes, decision, save, previous, next, return-to-revision, and history display.
+- Next step: run build, API persistence checks, browser review-flow checks, then push v0.4.0.
+
+### 2026-04-13 Round 25
+
+- Fix: changed the `ReviewDesk` return-to-revision action so it forcibly persists decision `needs_revision` instead of only recording an action label.
+- Verification: `npm run build` passed for package version `0.4.0`.
+- Verification: `python -m compileall backend` passed.
+- Verification: `git diff --check` passed.
+- Verification: backend health returned `{"status":"ok","model":"deepseek-chat"}` and frontend returned HTTP 200.
+- Browser verification: Playwright clicked the 3D room to run the loop, opened the wall screen during execution, and confirmed an intermediate `running/reviewing` stage was visible.
+- Browser verification: Playwright filled human metric A, standardized metric B, reviewer note, clicked return-to-revision, refreshed the page, reopened the wall screen, and confirmed all review values plus decision `needs_revision` persisted.
+- Screenshot artifacts: `output/playwright/q-loom-v0.4.0-before.png` and `output/playwright/q-loom-v0.4.0-review-flow.png`.
+- Next step: commit and push v0.4.0 to GitHub.

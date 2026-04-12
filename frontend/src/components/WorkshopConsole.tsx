@@ -20,6 +20,7 @@ interface WorkshopConsoleProps {
   busy: boolean;
   events: AgentEvent[];
   result: AgentRunResponse | null;
+  stageIndex: number;
   onRun: () => void;
   onScreenOpen: () => void;
 }
@@ -28,6 +29,7 @@ export function WorkshopConsole({
   busy,
   events,
   result,
+  stageIndex,
   onRun,
   onScreenOpen,
 }: WorkshopConsoleProps) {
@@ -51,9 +53,8 @@ export function WorkshopConsole({
   }, []);
 
   useEffect(() => {
-    workshopRef.current?.setState(events, result, busy);
-  }, [busy, events, result]);
+    workshopRef.current?.setState(events, result, busy, stageIndex);
+  }, [busy, events, result, stageIndex]);
 
   return <div className="workshopScene" ref={hostRef} aria-label="全 3D 智能体工作坊" />;
 }
-

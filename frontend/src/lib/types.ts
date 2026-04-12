@@ -37,3 +37,46 @@ export interface AgentRunResponse {
   events: AgentEvent[];
 }
 
+export type ReviewDecision = "pending" | "accepted" | "rejected" | "needs_revision";
+
+export interface ReviewHistoryEntry {
+  timestamp: string;
+  action: string;
+  note: string;
+}
+
+export interface ReviewSample {
+  sample_id: string;
+  payload: Record<string, unknown>;
+  human_metric_A: string;
+  human_metric_B: string;
+  reviewer_note: string;
+  decision: ReviewDecision;
+  updated_at: string;
+  history: ReviewHistoryEntry[];
+}
+
+export interface ReviewStats {
+  total: number;
+  pending: number;
+  accepted: number;
+  rejected: number;
+  needs_revision: number;
+}
+
+export interface ReviewState {
+  current_index: number;
+  samples: ReviewSample[];
+  stats: ReviewStats;
+  storage_path: string;
+}
+
+export interface ReviewSavePayload {
+  sample_id: string;
+  human_metric_A: string;
+  human_metric_B: string;
+  reviewer_note: string;
+  decision: ReviewDecision;
+  payload?: Record<string, unknown>;
+  action?: string;
+}

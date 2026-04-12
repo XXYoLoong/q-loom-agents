@@ -22,6 +22,7 @@ from langgraph.graph import END, START, StateGraph
 from backend.app.agents.llm import invoke_json
 from backend.app.agents.prompt_loader import load_agent_prompt, shared_protocol
 from backend.app.schemas.run import AgentEvent, AgentRunRequest, AgentRunResponse
+from backend.app.services.review_store import review_store
 
 
 class PipelineState(TypedDict, total=False):
@@ -203,6 +204,7 @@ def run_pipeline(request: AgentRunRequest) -> AgentRunResponse:
         "events": [_event("控制台", "searching", "正在分配四个智能体任务", 8)],
     }
     result = build_graph().invoke(initial)
+    review_store.add_sample(result["sample"])
     return AgentRunResponse(
         run_id=run_id,
         sample=result["sample"],
@@ -211,4 +213,3 @@ def run_pipeline(request: AgentRunRequest) -> AgentRunResponse:
         audit=result["audit"],
         events=[AgentEvent(**event) for event in result["events"]],
     )
-

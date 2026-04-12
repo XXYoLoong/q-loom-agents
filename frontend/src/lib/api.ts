@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import type { AgentEvent, AgentRunResponse } from "./types";
+import type { AgentEvent, AgentRunResponse, ReviewSavePayload, ReviewState } from "./types";
 
 export async function fetchStatus(): Promise<AgentEvent[]> {
   const response = await fetch("/api/status");
@@ -43,3 +43,41 @@ export async function runAgents(): Promise<AgentRunResponse> {
   return response.json();
 }
 
+export async function fetchReviewState(): Promise<ReviewState> {
+  const response = await fetch("/api/review");
+  if (!response.ok) {
+    throw new Error("无法读取人工审查记录。");
+  }
+  return response.json();
+}
+
+export async function saveReview(payload: ReviewSavePayload): Promise<ReviewState> {
+  const response = await fetch("/api/review/save", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    throw new Error("保存人工审查失败。");
+  }
+  return response.json();
+}
+
+export async function navigateReview(
+  direction: "previous" | "next",
+  autosave?: ReviewSavePayload,
+): Promise<ReviewState> {
+  const response = await fetch("/api/review/navigate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ direction, autosave }),
+  });
+  if (!response.ok) {
+    throw new Error("切换审查样本失败。");
+  }
+  return response.json();
+}

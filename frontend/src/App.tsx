@@ -13,9 +13,10 @@
 // limitations under the License.
 
 import { useEffect, useState } from "react";
+import { ReviewDesk } from "./components/ReviewDesk";
 import { WorkshopConsole } from "./components/WorkshopConsole";
-import { fetchStatus, runAgents } from "./lib/api";
-import type { AgentEvent, AgentRunResponse } from "./lib/types";
+import { fetchReviewState, fetchStatus, runAgents } from "./lib/api";
+import type { AgentEvent, AgentRunResponse, ReviewState } from "./lib/types";
 
 const fallbackEvents: AgentEvent[] = [
   { agent: "生成 Agent", status: "idle", message: "等待生成样本", progress: 0 },
@@ -30,30 +31,48 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [screenOpen, setScreenOpen] = useState(false);
+  const [reviewState, setReviewState] = useState<ReviewState | null>(null);
+  const [stageIndex, setStageIndex] = useState(0);
 
   useEffect(() => {
     fetchStatus()
       .then(setEvents)
       .catch(() => setEvents(fallbackEvents));
+    fetchReviewState()
+      .then(setReviewState)
+      .catch(() => undefined);
   }, []);
 
   async function handleRun() {
     setBusy(true);
     setError("");
-    setEvents([
-      { agent: "生成 Agent", status: "searching", message: "寻找 Q 版小人灵感与样本语气", progress: 10 },
-      { agent: "质量监测 Agent", status: "idle", message: "等待候选样本", progress: 0 },
-      { agent: "验收 Agent", status: "idle", message: "等待质检结果", progress: 0 },
-      { agent: "监督 Agent", status: "idle", message: "等待闭环材料", progress: 0 },
-    ]);
+    setStageIndex(0);
+    const stagedEvents: AgentEvent[] = [
+      { agent: "生成 Agent", status: "running", message: "正在生成候选样本与上下文记忆", progress: 25 },
+      { agent: "质量监测 Agent", status: "reviewing", message: "正在检查长度、字段、情绪和上下文一致性", progress: 45 },
+      { agent: "验收 Agent", status: "reviewing", message: "正在整合质检报告并给出 accept/reject", progress: 68 },
+      { agent: "监督 Agent", status: "reviewing", message: "正在审计前三个智能体并生成纠偏指令", progress: 88 },
+    ];
+    stagedEvents.forEach((event, index) => {
+      window.setTimeout(() => {
+        setStageIndex(index + 1);
+        setEvents((previous) =>
+          previous.map((item) => (item.agent === event.agent ? event : item)),
+        );
+      }, index * 900);
+    });
     try {
       const response = await runAgents();
       setResult(response);
-      setEvents(response.events.filter((event) => event.agent !== "控制台"));
+      window.setTimeout(() => {
+        setStageIndex(5);
+        setEvents(response.events.filter((event) => event.agent !== "控制台"));
+      }, stagedEvents.length * 900);
+      setReviewState(await fetchReviewState());
     } catch (runError) {
       setError(runError instanceof Error ? runError.message : "运行失败。");
     } finally {
-      setBusy(false);
+      window.setTimeout(() => setBusy(false), stagedEvents.length * 900 + 250);
     }
   }
 
@@ -63,6 +82,7 @@ export function App() {
         busy={busy}
         events={events}
         result={result}
+        stageIndex={stageIndex}
         onRun={handleRun}
         onScreenOpen={() => setScreenOpen(true)}
       />
@@ -74,7 +94,7 @@ export function App() {
           </button>
           <section>
             <h1>系统大屏</h1>
-            <p>四个智能体的运行状态与本轮输出。</p>
+            <p>四个智能体的运行状态、本轮输出与长期人工审查队列。</p>
             <div className="screenGrid">
               {events.map((event) => (
                 <article key={event.agent}>
@@ -85,6 +105,7 @@ export function App() {
                 </article>
               ))}
             </div>
+            <ReviewDesk state={reviewState} onStateChange={setReviewState} />
             <pre>{result ? JSON.stringify(result, null, 2) : "尚未运行。点击小人或启动闭环开始。"}</pre>
           </section>
         </div>
