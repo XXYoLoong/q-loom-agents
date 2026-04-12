@@ -19,6 +19,7 @@ export default defineConfig({
   plugins: [react()],
   root: ".",
   build: {
+    chunkSizeWarningLimit: 650,
     rollupOptions: {
       output: {
         manualChunks: {

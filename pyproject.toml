@@ -1,6 +1,6 @@
 [project]
 name = "q-loom-agents"
-version = "0.1.0"
+version = "0.2.0"
 description = "LangChain and LangGraph multi-agent pipeline with a Q-style 3D operations console."
 readme = "README.md"
 requires-python = ">=3.11"

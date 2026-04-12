@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { useEffect, useMemo, useState } from "react";
-import { AgentConsole } from "./components/AgentConsole";
+import { WorkshopConsole } from "./components/WorkshopConsole";
 import { fetchStatus, runAgents } from "./lib/api";
 import type { AgentEvent, AgentRunResponse } from "./lib/types";
 
@@ -29,6 +29,7 @@ export function App() {
   const [result, setResult] = useState<AgentRunResponse | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [screenOpen, setScreenOpen] = useState(false);
 
   useEffect(() => {
     fetchStatus()
@@ -61,42 +62,46 @@ export function App() {
   }
 
   return (
-    <main className="shell">
-      <section className="workspace">
-        <div className="copy">
-          <p className="eyebrow">Q-Loom Agents</p>
-          <h1>人格样本闭环控制台</h1>
-          <p className="lede">四个 Q 版智能体正在生成、质检、验收和监督江徽音人格数据。</p>
-          <div className="actions">
-            <button onClick={handleRun} disabled={busy}>
-              {busy ? "运行中" : "启动闭环"}
-            </button>
-            <span>{accepted ? "本轮已通过" : "等待本轮结论"}</span>
-          </div>
-        </div>
-        <AgentConsole events={events} />
-      </section>
-
-      <section className="statusGrid">
-        {events.map((event) => (
-          <article key={event.agent} className="statusItem">
-            <div>
-              <strong>{event.agent}</strong>
-              <p>{event.message}</p>
-            </div>
-            <meter min={0} max={100} value={event.progress} />
-          </article>
-        ))}
-      </section>
-
-      <section className="resultPanel">
+    <main className="workshopShell">
+      <WorkshopConsole
+        busy={busy}
+        events={events}
+        result={result}
+        onRun={handleRun}
+        onScreenOpen={() => setScreenOpen(true)}
+      />
+      <div className="commandDock">
         <div>
-          <h2>本轮输出</h2>
-          <p>{error || "样本、评分、验收与监督结果会在这里同步。"}</p>
+          <span>Q-Loom Agents</span>
+          <strong>{accepted ? "本轮已通过" : busy ? "闭环运行中" : "3D 工作坊待命"}</strong>
         </div>
-        <pre>{result ? JSON.stringify(result, null, 2) : "尚未运行"}</pre>
-      </section>
+        <button onClick={handleRun} disabled={busy}>
+          {busy ? "运行中" : "启动闭环"}
+        </button>
+      </div>
+      {error ? <div className="errorDock">{error}</div> : null}
+      {screenOpen ? (
+        <div className="screenOverlay" role="dialog" aria-modal="true">
+          <button className="closeButton" onClick={() => setScreenOpen(false)}>
+            关闭
+          </button>
+          <section>
+            <h1>系统大屏</h1>
+            <p>四个智能体的运行状态与本轮输出。</p>
+            <div className="screenGrid">
+              {events.map((event) => (
+                <article key={event.agent}>
+                  <strong>{event.agent}</strong>
+                  <span>{event.status}</span>
+                  <p>{event.message}</p>
+                  <meter min={0} max={100} value={event.progress} />
+                </article>
+              ))}
+            </div>
+            <pre>{result ? JSON.stringify(result, null, 2) : "尚未运行。点击小人或启动闭环开始。"}</pre>
+          </section>
+        </div>
+      ) : null}
     </main>
   );
 }
-

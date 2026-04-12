@@ -35,6 +35,31 @@ examples/
 5. 监督 Agent 读取 `agents/04_supervisor_agent.md`，审核前三个 Agent 的行为、结论和偏差，输出 `audit_report` 与纠偏指令。
 6. 若人工在 `human_metric_A` 填入指导意见，下一轮先把它标准化为 `human_metric_B`，再让四类 Agent 自适应调整。
 
+## 一键启动
+
+Windows 下可双击：
+
+```text
+start-all.bat
+```
+
+或在 PowerShell 中运行：
+
+```powershell
+.\scripts\start-all.ps1
+```
+
+脚本会启动：
+
+- 后端：`http://127.0.0.1:8000`
+- 前端 3D 工作坊：`http://127.0.0.1:5173`
+
+停止：
+
+```powershell
+.\scripts\stop-all.ps1
+```
+
 ## 样本核心字段
 
 每条样本至少包含：

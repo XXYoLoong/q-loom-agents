@@ -83,3 +83,54 @@ Q-Loom Agents
 - Publish: pushed the license fix to `origin/main`.
 - Verification: GitHub now reports license key `apache-2.0` and visibility `PUBLIC`.
 - Final state: working tree is expected to be clean after this log update is committed and pushed.
+
+### 2026-04-13 Round 12
+
+- Request received: install the external PUA Codex skill from `https://raw.githubusercontent.com/tanweai/pua/main/.codex/INSTALL.md`, avoid C drive writes for that installation, add one-key project startup, and upgrade the console into a full 3D workshop room.
+- External install: read the raw installation instructions and changed all default `$env:USERPROFILE\.codex` paths to `F:\.codex`.
+- Result: cloned `https://github.com/tanweai/pua.git` to `F:\.codex\pua`, created skill junction `F:\.codex\skills\pua`, and created prompt hard link `F:\.codex\prompts\pua.md`.
+- Verification: `F:\.codex\skills\pua\SKILL.md` and `F:\.codex\prompts\pua.md` both exist.
+- Next step: implement v0.2.0 one-key startup scripts and rebuild the frontend as a full 3D workshop.
+
+### 2026-04-13 Round 13
+
+- Implementation: added `start-all.bat`, `scripts/start-all.ps1`, and `scripts/stop-all.ps1`.
+- Startup behavior: the one-key script starts FastAPI on port 8000, Vite on port 5173, writes logs and PID state under the project `output` directory, sets `CODEX_HOME=F:\.codex`, and opens the console unless `-NoOpen` is passed.
+- Safety decision: the startup script does not auto-install missing npm dependencies, because implicit package-manager caches may write outside the project; it asks the user to run `npm install` explicitly if `node_modules` is missing.
+- Next step: replace the frontend surface with a fully 3D workshop room.
+
+### 2026-04-13 Round 14
+
+- Implementation: replaced the previous embedded 3D panel with a full-screen Three.js workshop scene.
+- 3D modeling: added room geometry, floor, back and side walls, lamps, desks, computers, a large wall status screen, chibi agent bodies, task props, papers, magnifying glass, keyboard, and supervisor whip.
+- Interaction: hovering over a mascot now shows a live task tooltip; clicking a mascot starts the agent loop; clicking the wall screen opens a full-screen status and result panel.
+- Animation: generator hands type at the keyboard, quality monitor moves the magnifying glass, acceptance flips comparison papers, and supervisor swings the whip.
+- Build: `npm run build` and `python -m compileall backend` passed after the scene replacement.
+- Next step: run Playwright visual and pixel verification, test one-key startup, then push v0.2.0.
+
+### 2026-04-13 Round 15
+
+- Verification: first `scripts/stop-all.ps1` smoke test exposed a Windows PowerShell parsing issue with UTF-8 Chinese strings in the script.
+- Fix: changed runtime messages in `start-all.ps1` and `stop-all.ps1` to ASCII-only text so Windows PowerShell 5.1 can parse them reliably even without UTF-8 BOM handling.
+- Next step: rerun one-key startup and stop scripts.
+
+### 2026-04-13 Round 16
+
+- Verification: one-key startup script successfully started backend and frontend; health check returned `ok`, and the frontend returned HTTP 200.
+- Verification: Playwright opened the full 3D workshop, captured `output/playwright/q-loom-workshop-v0.2.0.png`, measured canvas pixels as `25600/25600` nonblank, confirmed the wall-screen overlay opened, and confirmed a hover tooltip became visible.
+- Blocker: first stop script test stopped the recorded `cmd.exe` wrapper but left the Vite child `node` process listening on port 5173.
+- Fix: updated `stop-all.ps1` to stop process trees and also clear listeners on ports 8000 and 5173.
+- Next step: rerun stop/start checks, then commit and push v0.2.0.
+
+### 2026-04-13 Round 17
+
+- Verification: rerunning `stop-all.ps1` exposed a PowerShell variable interpolation bug in the string `port $port:`.
+- Fix: changed the string to use `${port}` so PowerShell does not parse the colon as part of a scoped variable reference.
+- Next step: rerun stop/start checks.
+
+### 2026-04-13 Round 18
+
+- Verification: `stop-all.ps1` successfully stopped the stale Vite listener on port 5173; ports 8000 and 5173 were both clear afterward.
+- Verification: `start-all.ps1 -NoOpen` successfully started backend and frontend again; backend health returned `{"status":"ok","model":"deepseek-chat"}` and frontend returned HTTP 200.
+- Delivery state: local v0.2.0 services are running for user review.
+- Next step: commit and push v0.2.0 to GitHub.
