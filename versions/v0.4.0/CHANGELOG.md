@@ -27,4 +27,4 @@
 - HTTP 持久化冒烟测试通过：人工指标、备注、决策写入 `output/review/review_state.json` 后可重新读取。
 - Playwright 浏览器验证通过：运行中可见 `running/reviewing` 中间阶段，人工审查台可填写 A/B/备注，点击返回修改会保存为 `needs_revision`，刷新后仍可恢复。
 - 截图留档：`output/playwright/q-loom-v0.4.0-before.png`、`output/playwright/q-loom-v0.4.0-review-flow.png`。
-- 待执行：GitHub 推送。
+- GitHub 推送完成：`252caba`，仓库 `https://github.com/XXYoLoong/q-loom-agents`。

@@ -193,3 +193,10 @@ Q-Loom Agents
 - Browser verification: Playwright filled human metric A, standardized metric B, reviewer note, clicked return-to-revision, refreshed the page, reopened the wall screen, and confirmed all review values plus decision `needs_revision` persisted.
 - Screenshot artifacts: `output/playwright/q-loom-v0.4.0-before.png` and `output/playwright/q-loom-v0.4.0-review-flow.png`.
 - Next step: commit and push v0.4.0 to GitHub.
+
+### 2026-04-13 Round 26
+
+- Commit: created `252caba` with message `v0.4.0 staged review workflow`.
+- Publish: pushed v0.4.0 to GitHub `origin/main`.
+- Repository: `https://github.com/XXYoLoong/q-loom-agents`.
+- Next step: commit this documentation sync so the repository history records the published v0.4.0 revision.
