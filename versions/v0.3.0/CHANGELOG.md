@@ -22,4 +22,5 @@
 - 已通过：Playwright 截图与 canvas 像素检查，`21600/21600` 非空。
 - 已通过：Playwright 检查悬浮窗口可显示。
 - 已通过：Playwright 检查点击背景墙大屏可打开全屏状态面板。
-- 待执行：GitHub 推送。
+- 已通过：`git diff --check`。
+- 已通过：提交 `2a50f31` 并推送到 GitHub。

@@ -157,3 +157,11 @@ Q-Loom Agents
 - UX adjustment: removed the main web-style command button so the default control surface is the 3D room itself; users can click an agent to run and click the wall screen for the full-screen panel.
 - Verification: `npm run build` and `python -m compileall backend` passed; Playwright screenshot captured `output/playwright/q-loom-workshop-v0.3.0b.png`; canvas metrics were `21600/21600` nonblank, tooltip appeared, and wall-screen overlay opened.
 - Next step: update package versions, run final checks, commit, and push v0.3.0.
+
+### 2026-04-13 Round 22
+
+- Final verification: `npm run build`, `python -m compileall backend`, `git diff --check`, and Playwright visual checks passed after removing the web-style command dock.
+- Screenshot: final visual artifact saved at `output/playwright/q-loom-workshop-v0.3.0-final.png`.
+- Playwright metrics: canvas `21600/21600` nonblank, tooltip visible, and wall-screen overlay opened.
+- Commit: created `2a50f31` with message `v0.3.0 anime workshop polish`.
+- Publish: pushed v0.3.0 to GitHub `origin/main`.
