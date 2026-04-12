@@ -134,3 +134,11 @@ Q-Loom Agents
 - Verification: `start-all.ps1 -NoOpen` successfully started backend and frontend again; backend health returned `{"status":"ok","model":"deepseek-chat"}` and frontend returned HTTP 200.
 - Delivery state: local v0.2.0 services are running for user review.
 - Next step: commit and push v0.2.0 to GitHub.
+
+### 2026-04-13 Round 19
+
+- Verification: final `git diff --check` passed.
+- Verification: final `npm run build` passed for v0.2.0.
+- Verification: final `python -m compileall backend` passed.
+- Commit: created `9ec991d` with message `v0.2.0 full 3d workshop and startup`.
+- Publish: pushed v0.2.0 to `origin/main` at `https://github.com/XXYoLoong/q-loom-agents`.
