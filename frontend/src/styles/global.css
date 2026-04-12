@@ -1,0 +1,191 @@
+/*
+Copyright 2026 Jiacheng Ni
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+:root {
+  font-family:
+    Inter, "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #1f2933;
+  background: #e9f0ef;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 0.82rem 1.1rem;
+  color: #ffffff;
+  background: #1f6f78;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.shell {
+  min-height: 100vh;
+  padding: clamp(16px, 3vw, 34px);
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(320px, 1.4fr);
+  gap: clamp(18px, 4vw, 48px);
+  align-items: center;
+  min-height: 58svh;
+}
+
+.copy {
+  max-width: 520px;
+}
+
+.eyebrow {
+  margin: 0 0 0.9rem;
+  color: #1f6f78;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 1rem;
+  font-size: clamp(2.4rem, 5vw, 5.8rem);
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+.lede {
+  max-width: 34rem;
+  color: #4d5f66;
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  align-items: center;
+  margin-top: 1.5rem;
+  color: #4d5f66;
+  font-weight: 700;
+}
+
+.scene {
+  width: 100%;
+  min-height: 520px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.statusGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 18px;
+  background: #bdd0cf;
+  border: 1px solid #bdd0cf;
+}
+
+.statusItem {
+  display: grid;
+  gap: 0.8rem;
+  min-height: 140px;
+  padding: 1rem;
+  background: #f7faf9;
+}
+
+.statusItem strong {
+  display: block;
+  margin-bottom: 0.36rem;
+}
+
+.statusItem p {
+  margin-bottom: 0;
+  color: #536970;
+  line-height: 1.55;
+}
+
+meter {
+  width: 100%;
+  height: 0.7rem;
+}
+
+.resultPanel {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.45fr) minmax(0, 1fr);
+  gap: 1rem;
+  margin-top: 1px;
+  padding: 1rem;
+  background: #ffffff;
+  border: 1px solid #bdd0cf;
+}
+
+.resultPanel pre {
+  max-height: 360px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #263238;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 920px) {
+  .workspace,
+  .resultPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .scene {
+    min-height: 420px;
+  }
+
+  .statusGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .statusGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .scene {
+    min-height: 360px;
+  }
+}
+

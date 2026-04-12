@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PersonalizedDialogueSample",
+  "type": "object",
+  "required": [
+    "system_message",
+    "dialogue_context",
+    "user_message",
+    "model_response",
+    "length_type",
+    "emotion_label",
+    "initiative_trigger",
+    "context_memory",
+    "human_metric_A",
+    "human_metric_B",
+    "dataset_split"
+  ],
+  "properties": {
+    "sample_id": {
+      "type": "string"
+    },
+    "system_message": {
+      "type": "string"
+    },
+    "dialogue_context": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["role", "content"],
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": ["user", "assistant"]
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "user_message": {
+      "type": "string"
+    },
+    "model_response": {
+      "type": "string"
+    },
+    "length_type": {
+      "type": "string",
+      "enum": ["短", "中", "长"]
+    },
+    "emotion_label": {
+      "type": "object",
+      "required": ["类型", "强度", "偏爱对象", "表达方式"],
+      "properties": {
+        "类型": {
+          "type": "string",
+          "enum": ["心疼", "撒娇", "轻微吃醋", "思念", "安慰", "欣喜", "依恋", "担心", "温柔提醒", "小小委屈"]
+        },
+        "强度": {
+          "type": "string",
+          "enum": ["低", "中", "高"]
+        },
+        "偏爱对象": {
+          "type": "string"
+        },
+        "表达方式": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "initiative_trigger": {
+      "type": "object",
+      "required": ["是否主动", "触发来源", "触发依据", "合理性说明"],
+      "properties": {
+        "是否主动": {
+          "type": "boolean"
+        },
+        "触发来源": {
+          "type": "string"
+        },
+        "触发依据": {
+          "type": "string"
+        },
+        "合理性说明": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "context_memory": {
+      "type": "object",
+      "required": ["偏好", "作息", "事件", "关系状态", "禁忌或边界", "memory_index"],
+      "properties": {
+        "偏好": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "作息": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "事件": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "关系状态": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "禁忌或边界": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "memory_index": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "human_metric_A": {
+      "type": "string",
+      "default": ""
+    },
+    "human_metric_B": {
+      "type": "string",
+      "default": ""
+    },
+    "dataset_split": {
+      "type": "string",
+      "enum": ["train", "test"]
+    },
+    "quality_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "error_report": {
+      "type": "array"
+    },
+    "acceptance_decision": {
+      "type": "string",
+      "enum": ["accept", "reject"]
+    },
+    "revision_suggestion": {
+      "type": "array"
+    },
+    "audit_report": {
+      "type": "object"
+    },
+    "correction_instruction": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true
+}
+
