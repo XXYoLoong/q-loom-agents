@@ -142,3 +142,18 @@ Q-Loom Agents
 - Verification: final `python -m compileall backend` passed.
 - Commit: created `9ec991d` with message `v0.2.0 full 3d workshop and startup`.
 - Publish: pushed v0.2.0 to `origin/main` at `https://github.com/XXYoLoong/q-loom-agents`.
+
+### 2026-04-13 Round 20
+
+- Request received: user said the current 3D console is too ugly and provided a Q-style anime control-room reference image.
+- Skill: loaded `F:\.codex\pua\codex\pua\SKILL.md` and `frontend-skill`; selected a quality-focused redesign path instead of minor parameter tweaks.
+- Visual target: central coder at a long desk, supervisor with whip at left, quality monitor with magnifying glass at lower-left, acceptance agent with documents at right, large wall screen, side monitor racks, plants, papers, coffee, cables, and dense lab-room detail.
+- Next step: refactor the Three.js workshop scene for v0.3.0, verify with screenshot and canvas checks, then push to GitHub.
+
+### 2026-04-13 Round 21
+
+- Implementation: rebuilt the workshop composition around the reference image: central coder at a long desk, left supervisor with whip, lower-left quality monitor with magnifying glass, and right acceptance agent with documents.
+- 3D detail: added side screen cabinets, top wall screens, a larger wall dashboard, long desk drawers, chair, dual monitors, reading desks, coffee cups, plants, sticky notes, floor cables, character hair colors, glasses, smiles, and outline meshes.
+- UX adjustment: removed the main web-style command button so the default control surface is the 3D room itself; users can click an agent to run and click the wall screen for the full-screen panel.
+- Verification: `npm run build` and `python -m compileall backend` passed; Playwright screenshot captured `output/playwright/q-loom-workshop-v0.3.0b.png`; canvas metrics were `21600/21600` nonblank, tooltip appeared, and wall-screen overlay opened.
+- Next step: update package versions, run final checks, commit, and push v0.3.0.

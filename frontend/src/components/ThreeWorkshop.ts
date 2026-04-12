@@ -16,14 +16,15 @@ import * as THREE from "three";
 import type { AgentEvent, AgentRunResponse } from "../lib/types";
 
 const ROOM = {
-  floor: 0xdfe8e4,
-  backWall: 0xc8d9d4,
-  sideWall: 0xb6cbc6,
-  beam: 0x5d7778,
-  wood: 0x9c7a5b,
+  floor: 0xe9ece8,
+  backWall: 0xd8d8df,
+  sideWall: 0xc9ced8,
+  beam: 0x6e7486,
+  wood: 0xb9906c,
   ink: 0x17212b,
   glass: 0x88d4d2,
   screen: 0x102a2e,
+  suit: 0x27303e,
 };
 
 const AGENT_COLORS = [0x61a9ff, 0x5ecf99, 0xe6b84c, 0xe87e9f];
@@ -66,6 +67,36 @@ function roundedBox(w: number, h: number, d: number, color: number) {
   return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(color));
 }
 
+function addOutline(group: THREE.Group, mesh: THREE.Mesh, scale = 1.05) {
+  const outline = new THREE.Mesh(
+    mesh.geometry,
+    new THREE.MeshBasicMaterial({ color: 0x1b2029, side: THREE.BackSide }),
+  );
+  outline.position.copy(mesh.position);
+  outline.rotation.copy(mesh.rotation);
+  outline.scale.copy(mesh.scale).multiplyScalar(scale);
+  group.add(outline);
+  return outline;
+}
+
+function addEdges(mesh: THREE.Mesh, color = 0x202433) {
+  const edges = new THREE.LineSegments(
+    new THREE.EdgesGeometry(mesh.geometry),
+    new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.42 }),
+  );
+  edges.position.copy(mesh.position);
+  edges.rotation.copy(mesh.rotation);
+  edges.scale.copy(mesh.scale);
+  mesh.parent?.add(edges);
+  return edges;
+}
+
+function addFramedBox(group: THREE.Group | THREE.Scene, mesh: THREE.Mesh) {
+  group.add(mesh);
+  addEdges(mesh);
+  return mesh;
+}
+
 function makeRoom(scene: THREE.Scene) {
   const floor = new THREE.Mesh(new THREE.BoxGeometry(12, 0.18, 8), mat(ROOM.floor));
   floor.position.set(0, -0.12, 0);
@@ -85,10 +116,16 @@ function makeRoom(scene: THREE.Scene) {
   rightWall.position.x = 6;
   scene.add(rightWall);
 
-  for (let i = 0; i < 5; i += 1) {
-    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.025, 8), mat(0xc8d3d0));
-    stripe.position.set(-4.8 + i * 2.4, 0.002, 0);
+  for (let i = 0; i < 9; i += 1) {
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.026, 8), mat(0xc9d0cf));
+    stripe.position.set(-5.1 + i * 1.28, 0.003, 0);
     scene.add(stripe);
+  }
+
+  for (let i = 0; i < 10; i += 1) {
+    const wallPanel = new THREE.Mesh(new THREE.BoxGeometry(0.025, 4.2, 0.026), mat(0xb8bcc9));
+    wallPanel.position.set(-5.4 + i * 1.2, 2.25, -3.87);
+    scene.add(wallPanel);
   }
 
   const ceilingRail = new THREE.Mesh(new THREE.BoxGeometry(9.8, 0.08, 0.1), mat(ROOM.beam));
@@ -103,6 +140,157 @@ function makeRoom(scene: THREE.Scene) {
     light.position.set(x, 3.9, -1.25);
     scene.add(light);
   });
+}
+
+function makeMiniScreen(width: number, height: number, color = 0x1a3d48) {
+  const group = new THREE.Group();
+  const frame = roundedBox(width + 0.08, height + 0.08, 0.06, 0x232b3a);
+  const screen = roundedBox(width, height, 0.018, color);
+  screen.position.z = 0.045;
+  group.add(frame, screen);
+  for (let i = 0; i < 7; i += 1) {
+    const line = roundedBox(width * (0.22 + ((i * 17) % 34) / 100), 0.012, 0.008, i % 3 === 0 ? 0x83f5da : 0x49a6ff);
+    line.position.set(-width * 0.32 + i * 0.018, height * 0.32 - i * 0.08, 0.06);
+    group.add(line);
+  }
+  const glow = new THREE.PointLight(0x4ce6ff, 0.08, 1.2);
+  glow.position.set(0, 0, 0.18);
+  group.add(glow);
+  return group;
+}
+
+function makeMonitorRack(x: number, side: "left" | "right") {
+  const group = new THREE.Group();
+  const cabinet = roundedBox(1.18, 2.95, 0.42, 0xd5d7dd);
+  cabinet.position.set(0, 1.45, 0);
+  addFramedBox(group, cabinet);
+  const ySlots = [2.42, 1.82, 1.18, 0.48];
+  ySlots.forEach((y, i) => {
+    const screen = makeMiniScreen(0.86, i === 3 ? 0.42 : 0.48, i % 2 === 0 ? 0x153848 : 0x1a4250);
+    screen.position.set(0, y, 0.24);
+    group.add(screen);
+  });
+  const drawer = roundedBox(0.88, 0.16, 0.06, 0x9da4b4);
+  drawer.position.set(0, 0.2, 0.245);
+  group.add(drawer);
+  group.position.set(x, 0, -2.55);
+  group.rotation.y = side === "left" ? 0.14 : -0.14;
+  return group;
+}
+
+function makePlant(scale = 1) {
+  const group = new THREE.Group();
+  const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.14 * scale, 0.18 * scale, 0.2 * scale, 18), mat(0x61748a));
+  pot.position.y = 0.1 * scale;
+  group.add(pot);
+  for (let i = 0; i < 6; i += 1) {
+    const leaf = new THREE.Mesh(new THREE.CapsuleGeometry(0.035 * scale, 0.28 * scale, 5, 10), mat(0x4caf65));
+    leaf.position.set(Math.sin(i) * 0.08 * scale, 0.29 * scale, Math.cos(i) * 0.08 * scale);
+    leaf.rotation.z = -0.75 + i * 0.28;
+    leaf.rotation.x = 0.42;
+    group.add(leaf);
+  }
+  return group;
+}
+
+function makeCoffeeCup() {
+  const group = new THREE.Group();
+  const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.065, 0.16, 20), mat(0xe8e6dc));
+  cup.position.y = 0.08;
+  const coffee = new THREE.Mesh(new THREE.CylinderGeometry(0.067, 0.067, 0.008, 20), mat(0x4a2c1e));
+  coffee.position.y = 0.165;
+  const handle = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.01, 8, 20), mat(0xe8e6dc));
+  handle.position.set(0.08, 0.09, 0);
+  handle.rotation.y = Math.PI / 2;
+  group.add(cup, coffee, handle);
+  return group;
+}
+
+function makeCable(start: THREE.Vector3, end: THREE.Vector3) {
+  const mid = start.clone().lerp(end, 0.5).add(new THREE.Vector3(0, -0.12, 0.16));
+  const curve = new THREE.CatmullRomCurve3([start, mid, end]);
+  return new THREE.Mesh(new THREE.TubeGeometry(curve, 24, 0.012, 8, false), mat(0x20232c));
+}
+
+function makeSticky(color: number) {
+  const note = roundedBox(0.22, 0.012, 0.18, color);
+  note.rotation.x = -Math.PI / 2;
+  return note;
+}
+
+function makeLongDesk() {
+  const group = new THREE.Group();
+  const top = roundedBox(5.55, 0.18, 1.12, ROOM.wood);
+  top.position.set(0, 0.78, 0);
+  addFramedBox(group, top);
+
+  [-2.35, 2.35].forEach((x) => {
+    const drawers = roundedBox(0.72, 0.74, 0.92, 0x778096);
+    drawers.position.set(x, 0.36, 0.02);
+    addFramedBox(group, drawers);
+    [0.48, 0.2].forEach((y) => {
+      const handle = roundedBox(0.28, 0.035, 0.035, 0x222838);
+      handle.position.set(x, y, 0.49);
+      group.add(handle);
+    });
+  });
+
+  [-0.95, 0.95].forEach((x) => {
+    const monitor = makeMiniScreen(1.2, 0.58, 0x143b4d);
+    monitor.position.set(x, 1.2, -0.43);
+    monitor.rotation.x = -0.08;
+    group.add(monitor);
+    const stand = roundedBox(0.08, 0.32, 0.05, 0x26313a);
+    stand.position.set(x, 0.96, -0.42);
+    group.add(stand);
+  });
+
+  const keyboard = roundedBox(0.84, 0.05, 0.26, 0x202936);
+  keyboard.position.set(0, 0.91, 0.24);
+  group.add(keyboard);
+
+  const chairBack = roundedBox(0.92, 0.9, 0.16, 0x2c3444);
+  chairBack.position.set(0, 0.86, 0.88);
+  addFramedBox(group, chairBack);
+  const chairBase = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.1, 28), mat(0x242b37));
+  chairBase.position.set(0, 0.38, 0.86);
+  group.add(chairBase);
+
+  const mug = makeCoffeeCup();
+  mug.position.set(-1.55, 0.88, 0.36);
+  group.add(mug);
+
+  [0xf2dc64, 0xeff0f2, 0x82d4ff].forEach((color, i) => {
+    const note = makeSticky(color);
+    note.position.set(0.78 + i * 0.28, 0.885, 0.32 - i * 0.05);
+    note.rotation.z = -0.16 + i * 0.08;
+    group.add(note);
+  });
+
+  group.add(makeCable(new THREE.Vector3(-0.2, 0.78, 0.46), new THREE.Vector3(-0.6, 0.05, 1.2)));
+  group.add(makeCable(new THREE.Vector3(0.28, 0.78, 0.43), new THREE.Vector3(0.72, 0.05, 1.12)));
+
+  return { group, keyboard };
+}
+
+function makeReadingDesk() {
+  const group = new THREE.Group();
+  const top = roundedBox(1.7, 0.14, 1.05, 0xb99574);
+  top.position.y = 0.72;
+  addFramedBox(group, top);
+  const book = roundedBox(0.82, 0.045, 0.58, 0xf6f0df);
+  book.position.set(0.05, 0.82, 0.08);
+  book.rotation.y = -0.16;
+  group.add(book);
+  for (let i = 0; i < 8; i += 1) {
+    const line = roundedBox(0.28 + (i % 3) * 0.08, 0.006, 0.012, 0x7e8b98);
+    line.position.set(-0.22 + (i % 2) * 0.42, 0.855, -0.16 + Math.floor(i / 2) * 0.08);
+    group.add(line);
+  }
+  const cup = makeCoffeeCup();
+  cup.position.set(-0.62, 0.8, 0.36);
+  group.add(cup);
+  return group;
 }
 
 function makeDesk(labelColor: number) {
@@ -134,22 +322,67 @@ function makeDesk(labelColor: number) {
 function makeChibi(color: number, role: AgentRig["role"], agent: string, task: string): AgentRig {
   const root = new THREE.Group();
   const skin = mat(0xffd9bf, 0.82);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.27, 32, 24), skin);
-  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.285, 32, 16, 0, Math.PI * 2, 0, Math.PI * 0.55), mat(0x34424a));
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.18, 0.35, 8, 20), mat(color));
+  const hairColors = {
+    generator: 0x3b241d,
+    monitor: 0x7a62c8,
+    acceptance: 0xf2c76b,
+    supervisor: 0x5a2d22,
+  };
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 36, 26), skin);
+  const hair = new THREE.Mesh(
+    new THREE.SphereGeometry(0.355, 36, 18, 0, Math.PI * 2, 0, Math.PI * 0.58),
+    mat(hairColors[role]),
+  );
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.42, 8, 22), mat(ROOM.suit));
+  const shirt = roundedBox(0.19, 0.2, 0.026, 0xf6f4ef);
+  const tie = roundedBox(0.045, 0.18, 0.03, color);
   const leftHand = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 10), skin);
   const rightHand = leftHand.clone();
   const eye1 = new THREE.Mesh(new THREE.SphereGeometry(0.019, 10, 8), mat(ROOM.ink));
   const eye2 = eye1.clone();
+  const blush1 = new THREE.Mesh(new THREE.SphereGeometry(0.028, 12, 8), mat(0xf4a7a2));
+  const blush2 = blush1.clone();
 
-  head.position.set(0, 1.08, 0.14);
+  head.position.set(0, 1.14, 0.14);
   hair.position.copy(head.position).add(new THREE.Vector3(0, 0.08, 0));
-  body.position.set(0, 0.67, 0.15);
+  body.position.set(0, 0.66, 0.15);
+  shirt.position.set(0, 0.78, 0.35);
+  tie.position.set(0, 0.72, 0.37);
   leftHand.position.set(-0.25, 0.84, 0.38);
   rightHand.position.set(0.25, 0.84, 0.38);
-  eye1.position.set(-0.078, 1.09, 0.395);
-  eye2.position.set(0.078, 1.09, 0.395);
-  root.add(body, head, hair, leftHand, rightHand, eye1, eye2);
+  eye1.position.set(-0.09, 1.15, 0.46);
+  eye2.position.set(0.09, 1.15, 0.46);
+  blush1.position.set(-0.16, 1.08, 0.455);
+  blush2.position.set(0.16, 1.08, 0.455);
+  addOutline(root, body, 1.07);
+  addOutline(root, head, 1.035);
+  addOutline(root, hair, 1.025);
+  root.add(body, shirt, tie, head, hair, leftHand, rightHand, eye1, eye2, blush1, blush2);
+
+  const smile = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.004, 8, 18, Math.PI), mat(0x8a4038));
+  smile.position.set(0, 1.075, 0.47);
+  smile.rotation.z = Math.PI;
+  root.add(smile);
+
+  if (role === "supervisor") {
+    const pony = new THREE.Mesh(new THREE.SphereGeometry(0.19, 22, 16), mat(hairColors[role]));
+    pony.position.set(-0.34, 1.12, 0.02);
+    pony.scale.set(0.92, 1.26, 0.82);
+    addOutline(root, pony, 1.03);
+    root.add(pony);
+  }
+
+  if (role === "monitor") {
+    const glasses = new THREE.Group();
+    const left = new THREE.Mesh(new THREE.TorusGeometry(0.058, 0.006, 8, 18), mat(0x2b303b));
+    const right = left.clone();
+    left.position.set(-0.09, 1.15, 0.478);
+    right.position.set(0.09, 1.15, 0.478);
+    const bridge = roundedBox(0.08, 0.006, 0.006, 0x2b303b);
+    bridge.position.set(0, 1.15, 0.478);
+    glasses.add(left, right, bridge);
+    root.add(glasses);
+  }
 
   let prop: THREE.Object3D;
   let papers: THREE.Group | undefined;
@@ -210,30 +443,73 @@ function drawStatusTexture(
   }
   ctx.fillStyle = "#0d262a";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#12363e";
+  ctx.fillRect(24, 24, 976, 592);
+  ctx.strokeStyle = "#68f0dc";
+  ctx.lineWidth = 3;
+  ctx.strokeRect(24, 24, 976, 592);
   ctx.fillStyle = "#79f2dc";
-  ctx.font = "700 54px Microsoft YaHei, sans-serif";
-  ctx.fillText("Q-Loom 运行大屏", 46, 78);
-  ctx.font = "28px Microsoft YaHei, sans-serif";
+  ctx.font = "700 50px Microsoft YaHei, sans-serif";
+  ctx.fillText("Q-Loom AgentOps", 54, 78);
+  ctx.font = "24px Microsoft YaHei, sans-serif";
   ctx.fillStyle = busy ? "#ffd36b" : "#bdf7ee";
-  ctx.fillText(busy ? "状态：闭环运行中" : "状态：待命 / 点击大屏查看详情", 48, 128);
+  ctx.fillText(
+    busy ? "LIVE / CLOSED LOOP RUNNING" : "READY / CLICK AGENT TO RUN",
+    58,
+    122,
+  );
+
+  ctx.strokeStyle = "#2f7480";
+  ctx.lineWidth = 1;
+  for (let x = 54; x < 962; x += 42) {
+    ctx.beginPath();
+    ctx.moveTo(x, 150);
+    ctx.lineTo(x, 584);
+    ctx.stroke();
+  }
+  for (let y = 150; y < 584; y += 36) {
+    ctx.beginPath();
+    ctx.moveTo(54, y);
+    ctx.lineTo(962, y);
+    ctx.stroke();
+  }
 
   events.forEach((event, index) => {
-    const y = 190 + index * 82;
+    const y = 185 + index * 78;
     ctx.fillStyle = ["#61a9ff", "#5ecf99", "#e6b84c", "#e87e9f"][index] ?? "#ffffff";
-    ctx.fillRect(48, y, Math.max(16, event.progress * 5.6), 18);
+    ctx.fillRect(60, y, Math.max(16, event.progress * 3.9), 16);
     ctx.fillStyle = "#f4fffb";
-    ctx.font = "700 28px Microsoft YaHei, sans-serif";
-    ctx.fillText(`${event.agent}  ${event.progress}%`, 48, y - 12);
-    ctx.font = "22px Microsoft YaHei, sans-serif";
+    ctx.font = "700 25px Microsoft YaHei, sans-serif";
+    ctx.fillText(`${event.agent}  ${event.progress}%`, 60, y - 10);
+    ctx.font = "19px Microsoft YaHei, sans-serif";
     ctx.fillStyle = "#cfeee8";
-    ctx.fillText(event.message.slice(0, 34), 48, y + 52);
+    ctx.fillText(event.message.slice(0, 22), 60, y + 44);
+  });
+
+  ctx.strokeStyle = "#63e5ff";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(520, 448);
+  [548, 576, 604, 632, 660, 688, 716, 744].forEach((x, i) => {
+    ctx.lineTo(x, 430 - Math.sin(i * 0.8 + (busy ? 1 : 0)) * 58);
+  });
+  ctx.stroke();
+
+  ["SAMPLE", "SCORE", "ACCEPT", "AUDIT"].forEach((label, i) => {
+    ctx.fillStyle = "#0f2b31";
+    ctx.fillRect(792, 176 + i * 74, 146, 44);
+    ctx.strokeStyle = "#56d9ce";
+    ctx.strokeRect(792, 176 + i * 74, 146, 44);
+    ctx.fillStyle = i === 2 && result ? "#ffd36b" : "#bff8ed";
+    ctx.font = "700 20px Microsoft YaHei, sans-serif";
+    ctx.fillText(label, 812, 205 + i * 74);
   });
 
   ctx.fillStyle = "#f8fff9";
-  ctx.font = "24px Microsoft YaHei, sans-serif";
+  ctx.font = "23px Microsoft YaHei, sans-serif";
   const decision = result?.acceptance?.acceptance_decision ?? "pending";
-  ctx.fillText(`验收：${decision}`, 48, 560);
-  ctx.fillText("点击大屏：全屏查看 / 交互切换", 48, 606);
+  ctx.fillText(`Decision: ${decision}`, 58, 564);
+  ctx.fillText("Click wall screen: fullscreen status", 500, 564);
 }
 
 export class ThreeWorkshop {
@@ -312,9 +588,9 @@ export class ThreeWorkshop {
   };
 
   private createScene() {
-    this.scene.background = new THREE.Color(0xcbdad6);
-    this.camera.position.set(0, 3.15, 6.4);
-    this.camera.lookAt(0, 1.35, -1.4);
+    this.scene.background = new THREE.Color(0xd8dde5);
+    this.camera.position.set(0, 3.05, 7.35);
+    this.camera.lookAt(0, 1.35, -1.2);
 
     const ambient = new THREE.HemisphereLight(0xffffff, 0x82928f, 2.15);
     const key = new THREE.DirectionalLight(0xffffff, 2.9);
@@ -323,7 +599,7 @@ export class ThreeWorkshop {
     this.scene.add(ambient, key);
     makeRoom(this.scene);
 
-    this.wallScreen.position.set(0, 2.35, -3.86);
+    this.wallScreen.position.set(0, 2.55, -3.86);
     this.scene.add(this.wallScreen);
     this.hoverTargets.set(this.wallScreen, {
       agent: "系统大屏",
@@ -338,56 +614,106 @@ export class ThreeWorkshop {
       task: "点击全屏查看系统状态与本轮输出",
     });
 
+    this.scene.add(makeMonitorRack(-5.15, "left"));
+    this.scene.add(makeMonitorRack(5.15, "right"));
+
+    [-4.3, 4.15].forEach((x, i) => {
+      const topScreen = makeMiniScreen(1.05, 0.42, i === 0 ? 0x173e52 : 0x173b46);
+      topScreen.position.set(x, 3.42, -3.83);
+      topScreen.rotation.y = x < 0 ? 0.08 : -0.08;
+      this.scene.add(topScreen);
+    });
+
+    const longDesk = makeLongDesk();
+    longDesk.group.position.set(0, 0, -0.05);
+    this.scene.add(longDesk.group);
+
+    const researchDesk = makeReadingDesk();
+    researchDesk.position.set(-3.25, 0, 1.5);
+    researchDesk.rotation.y = -0.42;
+    this.scene.add(researchDesk);
+
+    const rightSideTable = makeReadingDesk();
+    rightSideTable.position.set(3.82, 0, 1.42);
+    rightSideTable.rotation.y = 0.35;
+    rightSideTable.scale.set(0.82, 0.82, 0.82);
+    this.scene.add(rightSideTable);
+
+    [
+      { x: -5.45, z: 1.35, s: 1.25 },
+      { x: 3.6, z: -2.85, s: 0.85 },
+      { x: 4.6, z: 2.35, s: 0.9 },
+    ].forEach((plantInfo) => {
+      const plant = makePlant(plantInfo.s);
+      plant.position.set(plantInfo.x, 0, plantInfo.z);
+      this.scene.add(plant);
+    });
+
+    const floorCable = makeCable(new THREE.Vector3(-2.2, 0.04, 1.3), new THREE.Vector3(2.8, 0.04, 1.25));
+    this.scene.add(floorCable);
+
     const configs = [
       {
-        agent: "生成 Agent",
-        role: "generator" as const,
-        task: "在电脑前敲代码，生成江徽音人格样本",
-        x: -3.5,
-        z: -0.9,
-        color: AGENT_COLORS[0],
+        agent: "监督 Agent",
+        role: "supervisor" as const,
+        task: "挥舞监督鞭，检查前三个智能体的逻辑闭环",
+        x: -4.2,
+        z: -0.55,
+        y: 0,
+        rotation: 0.58,
+        color: AGENT_COLORS[3],
       },
       {
         agent: "质量监测 Agent",
         role: "monitor" as const,
         task: "拿着放大镜巡查字段、长度、情绪与上下文",
-        x: -1.2,
-        z: 0.15,
+        x: -3.22,
+        z: 1.92,
+        y: 0,
+        rotation: 0.15,
         color: AGENT_COLORS[1],
+      },
+      {
+        agent: "生成 Agent",
+        role: "generator" as const,
+        task: "在电脑前敲代码，生成江徽音人格样本",
+        x: 0,
+        z: 0.62,
+        y: 0,
+        rotation: Math.PI,
+        color: AGENT_COLORS[0],
       },
       {
         agent: "验收 Agent",
         role: "acceptance" as const,
-        task: "翻阅文件，比对评分后执行 accept/reject",
-        x: 1.2,
-        z: 0.15,
+        task: "拿着文件阅读比对，执行 accept/reject",
+        x: 3.78,
+        z: -0.35,
+        y: 0,
+        rotation: -0.52,
         color: AGENT_COLORS[2],
-      },
-      {
-        agent: "监督 Agent",
-        role: "supervisor" as const,
-        task: "挥舞监督鞭，检查前三个智能体的逻辑闭环",
-        x: 3.5,
-        z: -0.9,
-        color: AGENT_COLORS[3],
       },
     ];
 
-    configs.forEach((config, index) => {
-      const desk = makeDesk(config.color);
-      desk.group.position.set(config.x, 0, config.z);
-      desk.group.rotation.y = index < 2 ? -0.18 : 0.18;
-      this.scene.add(desk.group);
-
+    configs.forEach((config) => {
       const rig = makeChibi(config.color, config.role, config.agent, config.task);
-      rig.root.position.set(config.x, 0, config.z + 0.45);
-      rig.root.rotation.y = index < 2 ? -0.1 : 0.1;
-      rig.keyboard = desk.keyboard;
+      rig.root.position.set(config.x, config.y, config.z);
+      rig.root.rotation.y = config.rotation;
+      if (config.role === "generator") {
+        rig.keyboard = longDesk.keyboard;
+      }
       this.rigs.push(rig);
       this.scene.add(rig.root);
       rig.root.traverse((child) => {
         this.hoverTargets.set(child, rig);
       });
+    });
+
+    this.scene.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        object.castShadow = true;
+        object.receiveShadow = true;
+      }
     });
   }
 
@@ -475,4 +801,3 @@ export class ThreeWorkshop {
     this.animationId = requestAnimationFrame(this.animate);
   };
 }
-

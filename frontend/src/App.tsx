@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { WorkshopConsole } from "./components/WorkshopConsole";
 import { fetchStatus, runAgents } from "./lib/api";
 import type { AgentEvent, AgentRunResponse } from "./lib/types";
@@ -36,10 +36,6 @@ export function App() {
       .then(setEvents)
       .catch(() => setEvents(fallbackEvents));
   }, []);
-
-  const accepted = useMemo(() => {
-    return result?.acceptance.acceptance_decision === "accept";
-  }, [result]);
 
   async function handleRun() {
     setBusy(true);
@@ -70,15 +66,6 @@ export function App() {
         onRun={handleRun}
         onScreenOpen={() => setScreenOpen(true)}
       />
-      <div className="commandDock">
-        <div>
-          <span>Q-Loom Agents</span>
-          <strong>{accepted ? "本轮已通过" : busy ? "闭环运行中" : "3D 工作坊待命"}</strong>
-        </div>
-        <button onClick={handleRun} disabled={busy}>
-          {busy ? "运行中" : "启动闭环"}
-        </button>
-      </div>
       {error ? <div className="errorDock">{error}</div> : null}
       {screenOpen ? (
         <div className="screenOverlay" role="dialog" aria-modal="true">
