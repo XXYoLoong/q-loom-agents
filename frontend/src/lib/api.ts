@@ -69,8 +69,9 @@ export async function runBatch(settings: RunSettings): Promise<BatchRunResponse>
   return response.json();
 }
 
-export async function fetchLlmStatus(): Promise<LlmStatus> {
-  const response = await fetch("/api/llm/status");
+export async function fetchLlmStatus(refresh = false): Promise<LlmStatus> {
+  const query = refresh ? "?refresh=true" : "";
+  const response = await fetch(`/api/llm/status${query}`);
   if (!response.ok) {
     throw new Error("无法读取模型设置。");
   }

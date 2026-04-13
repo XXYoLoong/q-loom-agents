@@ -66,6 +66,7 @@ export interface BatchRunResponse {
 export interface LlmProviderInfo {
   configured: boolean;
   key_configured?: boolean;
+  setup_hint?: string | null;
   package_installed?: boolean;
   http_fallback?: boolean;
   model: string;

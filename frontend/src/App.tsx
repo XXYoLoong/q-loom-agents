@@ -58,6 +58,28 @@ export function App() {
   const [batchResult, setBatchResult] = useState<BatchRunResponse | null>(null);
   const [llmStatus, setLlmStatus] = useState<LlmStatus | null>(null);
   const [llmCalls, setLlmCalls] = useState<LlmCallRecord[]>([]);
+  const [llmStatusError, setLlmStatusError] = useState("");
+
+  async function loadLlmStatus({ refresh = false }: { refresh?: boolean } = {}) {
+    let latestError = "";
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      try {
+        const status = await fetchLlmStatus(refresh || attempt > 0);
+        setLlmStatus(status);
+        setLlmStatusError("");
+        const provider = status.selected_provider;
+        const model = status.providers[provider].models[0] ?? status.providers[provider].model;
+        setSettings((previous) => ({ ...previous, provider, model }));
+        return;
+      } catch (fetchError) {
+        latestError = fetchError instanceof Error ? fetchError.message : "无法读取模型设置。";
+        if (attempt < 3) {
+          await new Promise((resolve) => window.setTimeout(resolve, (attempt + 1) * 1000));
+        }
+      }
+    }
+    setLlmStatusError(latestError || "无法读取模型设置。");
+  }
 
   useEffect(() => {
     fetchStatus()
@@ -66,14 +88,7 @@ export function App() {
     fetchReviewState()
       .then(setReviewState)
       .catch(() => undefined);
-    fetchLlmStatus()
-      .then((status) => {
-        setLlmStatus(status);
-        const provider = status.selected_provider;
-        const model = status.providers[provider].models[0] ?? status.providers[provider].model;
-        setSettings((previous) => ({ ...previous, provider, model }));
-      })
-      .catch(() => undefined);
+    loadLlmStatus().catch(() => undefined);
     fetchLlmCalls()
       .then(setLlmCalls)
       .catch(() => undefined);
@@ -145,7 +160,7 @@ export function App() {
           <select
             value={settings.provider}
             onChange={(event) => updateProvider(event.target.value as RunSettings["provider"])}
-            disabled={busy}
+            disabled={busy || !llmStatus}
           >
             <option value="deepseek">
               DeepSeek{llmStatus?.providers.deepseek.configured ? "" : "（未配置）"}
@@ -161,7 +176,7 @@ export function App() {
           <select
             value={settings.model}
             onChange={(event) => updateSetting("model", event.target.value)}
-            disabled={busy}
+            disabled={busy || !llmStatus}
           >
             {(llmStatus?.providers[settings.provider].models.length
               ? llmStatus.providers[settings.provider].models
@@ -229,9 +244,16 @@ export function App() {
                 llmStatus.providers[settings.provider].models_error
                   ? ` · ${llmStatus.providers[settings.provider].models_error}`
                   : ""
+              }${
+                llmStatus.providers[settings.provider].setup_hint
+                  ? ` · ${llmStatus.providers[settings.provider].setup_hint}`
+                  : ""
               }`
-            : "读取模型状态中"}
+            : llmStatusError || "读取模型状态中"}
         </span>
+        <button type="button" onClick={() => loadLlmStatus({ refresh: true })} disabled={busy}>
+          刷新模型状态
+        </button>
       </section>
       {error ? <div className="errorDock">{error}</div> : null}
       {screenOpen ? (

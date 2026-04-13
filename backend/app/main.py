@@ -81,8 +81,8 @@ def run_batch(request: BatchRunRequest) -> BatchRunResponse:
 
 
 @app.get("/api/llm/status")
-def llm_status() -> dict:
-    return provider_status()
+def llm_status(refresh: bool = False) -> dict:
+    return provider_status(force_refresh=refresh)
 
 
 @app.get("/api/llm/models/{provider}")

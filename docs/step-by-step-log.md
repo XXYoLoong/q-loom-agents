@@ -338,3 +338,14 @@ Q-Loom Agents
 - Publish: pushed v0.7.3 to GitHub `origin/main`.
 - Repository: `https://github.com/XXYoLoong/q-loom-agents`.
 - Delivery state: local stack is running; backend health and frontend HTTP checks both passed after this release.
+
+### 2026-04-13 Round 40
+
+- Request received: user要求“DeepSeek 不走 NewAPI，只走 Claude”，并反馈模型配置反复失败、出现无法获取模型状态。
+- Constraint alignment: immediately removed the in-progress idea of multi-provider relay and kept the architecture as `DeepSeek/Qwen native + Claude relay only`.
+- Runtime diagnosis: backend and frontend processes were confirmed alive; `/api/llm/status` showed DeepSeek/Qwen model discovery is healthy, while Claude failed with `invalid x-api-key` because no relay base URL exists in environment.
+- Environment evidence: both user/machine env only contain `ANTHROPIC_API_KEY`; no `NEWAPI_BASE_URL`, `NEWAPI_API_KEY`, or `ANTHROPIC_BASE_URL`.
+- Backend fix: added `/api/llm/status?refresh=true` force-refresh support and `claude.setup_hint` to explicitly guide relay base URL setup when non-official key patterns are detected.
+- Frontend fix: added robust model-status loading retries and a manual “刷新模型状态” button to prevent first-load failures from getting stuck.
+- Verification: `python -m compileall backend`, `npm run build`, and `git diff --check` all passed; after restart `/api/health` was `ok` and `/api/llm/status?refresh=true` returned the new `setup_hint`.
+- Next step: publish v0.7.4 to GitHub with changelog and release documentation.

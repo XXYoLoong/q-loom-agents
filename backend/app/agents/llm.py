@@ -290,13 +290,16 @@ def provider_models(provider: str, *, force_refresh: bool = False) -> dict[str, 
     return {"models": models, "models_error": error_message}
 
 
-def provider_status() -> dict[str, Any]:
+def provider_status(*, force_refresh: bool = False) -> dict[str, Any]:
     selected = _normal_provider()
-    deepseek_models = provider_models("deepseek")
-    qwen_models = provider_models("qwen")
-    claude_models = provider_models("claude")
+    deepseek_models = provider_models("deepseek", force_refresh=force_refresh)
+    qwen_models = provider_models("qwen", force_refresh=force_refresh)
+    claude_models = provider_models("claude", force_refresh=force_refresh)
     claude_key = _claude_api_key()
     claude_relay = _is_claude_relay()
+    claude_setup_hint = None
+    if claude_key and not claude_relay and not str(claude_key).startswith("sk-ant-"):
+        claude_setup_hint = "检测到非 Anthropic 官方 key。若使用 NewAPI 中转，请设置 NEWAPI_BASE_URL。"
     return {
         "selected_provider": selected,
         "allow_mock_llm": settings.allow_mock_llm,
@@ -319,6 +322,7 @@ def provider_status() -> dict[str, Any]:
                 "newapi_configured": bool(settings.newapi_base_url or settings.newapi_api_key),
                 "relay_configured": claude_relay,
                 "auth_mode": "bearer" if claude_relay else "x-api-key",
+                "setup_hint": claude_setup_hint,
                 "package_installed": ChatAnthropic is not None,
                 "http_fallback": (claude_relay or ChatAnthropic is None) and bool(claude_key),
                 "model": settings.anthropic_model,
