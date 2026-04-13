@@ -19,4 +19,4 @@
 - `/api/llm/status` 显示 Claude 默认模型为 `claude-sonnet-4-6`。
 - 后端健康检查通过：`provider=deepseek`，`model=deepseek-chat`，`mock_allowed=false`。
 - 前端健康检查通过：HTTP 200。
-- 待执行：GitHub 推送。
+- GitHub 推送完成：`bdb182c`，仓库 `https://github.com/XXYoLoong/q-loom-agents`。

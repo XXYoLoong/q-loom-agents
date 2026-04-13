@@ -274,4 +274,5 @@ Q-Loom Agents
 - Version: bumped project versions to `0.6.1` for this Claude default correction.
 - Verification: `python -m compileall backend`, `npm run build`, and `git diff --check` passed.
 - Runtime verification: services restarted successfully; `/api/llm/status` reports Claude model `claude-sonnet-4-6`, while backend remains healthy on DeepSeek with `mock_allowed=false`.
-- Next step: commit and push v0.6.1.
+- Commit: created `bdb182c` with message `v0.6.1 update claude default model`.
+- Publish: pushed v0.6.1 to GitHub `origin/main`.
