@@ -34,4 +34,4 @@
 - 本地审查状态修复通过：`????`、`manual-A-v040-final`、`standard-B-v040-final`、`note-v040-final` 等测试污染值已从当前 review state 清除。
 - 重复检测验证通过：控制重复请求返回 `review_action=skipped_duplicate`、重复数 `2`、验收决策 `reject`。
 - Playwright 验证通过：生成设置面板无手动用户输入文本框，只有 3 个数量输入和 2 个选择框；未修改审查项时上一条/下一条不改变决策、不追加历史。
-- GitHub 推送完成：`701566d`，仓库 `https://github.com/XXYoLoong/q-loom-agents`。
+- GitHub 功能提交完成：`701566d`，文档同步提交完成：`f0a1772`，仓库 `https://github.com/XXYoLoong/q-loom-agents`。

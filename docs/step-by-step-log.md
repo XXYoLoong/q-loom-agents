@@ -238,4 +238,5 @@ Q-Loom Agents
 - Commit: created `701566d` with message `v0.5.0 real llm batch review fixes`.
 - Publish: pushed v0.5.0 to GitHub `origin/main`.
 - Repository: `https://github.com/XXYoLoong/q-loom-agents`.
-- Next step: commit this documentation sync.
+- Documentation sync: created and pushed `f0a1772` with message `docs record v0.5.0 publish`.
+- Delivery state: v0.5.0 is published; local services are running for review.
