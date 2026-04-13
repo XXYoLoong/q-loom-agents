@@ -230,3 +230,12 @@ Q-Loom Agents
 - Duplicate verification: a controlled duplicate request returned `review_action=skipped_duplicate`, duplicate count `2`, and acceptance decision `reject`.
 - Browser verification: Playwright confirmed no non-number manual input exists in the generation settings panel, and unchanged review navigation moved index without changing decision or appending history.
 - Next step: finalize docs/changelog, rerun final checks, commit, push v0.5.0.
+
+### 2026-04-13 Round 30
+
+- Final verification: `npm run build`, `python -m compileall backend`, `git diff --check`, backend health, and frontend HTTP 200 all passed.
+- Runtime: restarted services through `scripts/stop-all.ps1` and `scripts/start-all.ps1 -NoOpen`; backend reports `provider=deepseek`, `model=deepseek-chat`, `mock_allowed=false`.
+- Commit: created `701566d` with message `v0.5.0 real llm batch review fixes`.
+- Publish: pushed v0.5.0 to GitHub `origin/main`.
+- Repository: `https://github.com/XXYoLoong/q-loom-agents`.
+- Next step: commit this documentation sync.
