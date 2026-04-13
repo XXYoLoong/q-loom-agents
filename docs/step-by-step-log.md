@@ -349,3 +349,10 @@ Q-Loom Agents
 - Frontend fix: added robust model-status loading retries and a manual “刷新模型状态” button to prevent first-load failures from getting stuck.
 - Verification: `python -m compileall backend`, `npm run build`, and `git diff --check` all passed; after restart `/api/health` was `ok` and `/api/llm/status?refresh=true` returned the new `setup_hint`.
 - Next step: publish v0.7.4 to GitHub with changelog and release documentation.
+
+### 2026-04-13 Round 41
+
+- Commit: created `5073516` with message `v0.7.4 stabilize model status loading`.
+- Publish: pushed v0.7.4 to GitHub `origin/main`.
+- Repository: `https://github.com/XXYoLoong/q-loom-agents`.
+- Delivery state: backend and frontend are running; model status endpoint supports `refresh=true`; DeepSeek/Qwen native paths remain unchanged.
