@@ -316,3 +316,18 @@ Q-Loom Agents
 - Browser verification: Playwright confirmed the Claude model dropdown has 13 options, including `claude-opus-4-6` and `claude-sonnet-4-6`.
 - Commit: created `6a024b6` with message `v0.7.2 expand claude fallback models`.
 - Publish: pushed v0.7.2 to GitHub `origin/main`.
+
+### 2026-04-13 Round 38
+
+- Request received: user clarified that the Claude key is for a NewAPI relay and provided the NewAPI Apifox documentation URL.
+- Documentation check: NewAPI exposes model listing at `/v1/models` with `Authorization: Bearer`, and Claude native messages at `/v1/messages` with `anthropic-version`.
+- Root cause: the previous Claude branch treated `ANTHROPIC_API_KEY` as an official Anthropic key and sent `x-api-key`, so NewAPI relay keys produced `invalid x-api-key`.
+- Backend: added `NEWAPI_BASE_URL` and `NEWAPI_API_KEY`, with `ANTHROPIC_API_KEY` still usable as the relay token when `NEWAPI_API_KEY` is absent.
+- Backend: Claude now automatically switches auth mode between official Anthropic `x-api-key` and NewAPI relay `Authorization: Bearer`.
+- API: `/api/llm/status` now reports Claude `newapi_configured`, `relay_configured`, and `auth_mode` so the UI/debug output can prove which route is active.
+- Docs: README and v0.7.3 changelog now document NewAPI relay setup and the reason the docs URL itself must not be used as the API base URL.
+- Verification: `python -m compileall backend`, `npm run build`, and `git diff --check` passed.
+- Runtime verification: one-key scripts restarted the stack; `/api/health` returned `status=ok`, `provider=deepseek`, and `mock_allowed=false`; frontend returned HTTP 200.
+- Runtime caveat: current machine has `ANTHROPIC_API_KEY`, but no `NEWAPI_BASE_URL`, `NEWAPI_API_KEY`, or `ANTHROPIC_BASE_URL`, so Claude correctly reports `auth_mode=x-api-key` and `newapi_configured=false`.
+- Relay probe: with dummy process-only `NEWAPI_BASE_URL`, backend helper routing resolves Claude to `/v1/models`, `/v1/messages`, and `Authorization` auth mode.
+- Next step: commit and push v0.7.3, then record the publish commit.

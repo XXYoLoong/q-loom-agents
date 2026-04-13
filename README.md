@@ -59,11 +59,19 @@ start-all.bat
 默认模型供应商为 DeepSeek，可通过环境变量切换：
 
 ```powershell
-$env:LLM_PROVIDER="deepseek" # 或 qwen
+$env:LLM_PROVIDER="deepseek" # 可选 deepseek / qwen / claude
 $env:DEEPSEEK_API_KEY="..."
 $env:DASHSCOPE_API_KEY="..." # Qwen 兼容模式，也可用 QWEN_API_KEY
-$env:ANTHROPIC_API_KEY="..." # Claude
+$env:ANTHROPIC_API_KEY="..." # Claude 官方 key，或 NewAPI 中转 token
 $env:ANTHROPIC_MODEL="claude-sonnet-4-6"
+```
+
+如果 Claude 走 NewAPI 中转，而不是直连 Anthropic 官方接口，请额外配置中转服务地址：
+
+```powershell
+$env:NEWAPI_BASE_URL="https://你的-newapi-服务地址"
+# 可选：也可以把中转 token 放在 NEWAPI_API_KEY；未设置时会复用 ANTHROPIC_API_KEY。
+$env:NEWAPI_API_KEY="..."
 ```
 
 真实模型调用会记录到 `output/llm_calls/*.jsonl`。默认不启用 mock；只有显式设置
@@ -73,7 +81,7 @@ $env:ANTHROPIC_MODEL="claude-sonnet-4-6"
 
 - DeepSeek：OpenAI-compatible `/models`
 - Qwen：DashScope OpenAI-compatible `/models`
-- Claude：Anthropic `/v1/models`
+- Claude：官方 Anthropic `/v1/models` 使用 `x-api-key`；NewAPI 中转 `/v1/models` 使用 `Authorization: Bearer`
 
 停止：
 

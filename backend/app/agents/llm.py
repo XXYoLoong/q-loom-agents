@@ -86,11 +86,7 @@ class _HttpClaudeClient:
         }
         response = _json_post(
             _anthropic_message_url(settings.anthropic_base_url),
-            {
-                "x-api-key": settings.anthropic_api_key or "",
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
+            _claude_auth_headers(content_type=True),
             payload,
             timeout=120,
         )
@@ -138,15 +134,43 @@ def build_qwen_llm(model: str | None = None) -> ChatOpenAI | None:
     )
 
 
+def _claude_api_key() -> str | None:
+    return settings.newapi_api_key or settings.anthropic_api_key
+
+
+def _is_official_anthropic_base(base_url: str | None) -> bool:
+    clean = (base_url or "https://api.anthropic.com").rstrip("/").lower()
+    return clean in {"https://api.anthropic.com", "https://api.anthropic.com/v1"}
+
+
+def _is_claude_relay() -> bool:
+    return bool(settings.newapi_base_url) or not _is_official_anthropic_base(
+        settings.anthropic_base_url
+    )
+
+
+def _claude_auth_headers(*, content_type: bool = False) -> dict[str, str]:
+    key = _claude_api_key() or ""
+    headers = {"anthropic-version": "2023-06-01"}
+    if _is_claude_relay():
+        headers["Authorization"] = f"Bearer {key}"
+    else:
+        headers["x-api-key"] = key
+    if content_type:
+        headers["content-type"] = "application/json"
+    return headers
+
+
 def build_claude_llm(model: str | None = None) -> Any | None:
-    if not settings.anthropic_api_key:
+    api_key = _claude_api_key()
+    if not api_key:
         return None
     selected_model = model or settings.anthropic_model
-    if ChatAnthropic is None:
+    if _is_claude_relay() or ChatAnthropic is None:
         return _HttpClaudeClient(selected_model)
     kwargs: dict[str, Any] = {
         "model": selected_model,
-        "anthropic_api_key": settings.anthropic_api_key,
+        "anthropic_api_key": api_key,
         "temperature": 0.7,
     }
     if settings.anthropic_base_url:
@@ -235,14 +259,13 @@ def _fetch_provider_models(provider: str) -> tuple[list[str], str | None]:
                 {"Authorization": f"Bearer {settings.qwen_api_key}"},
             )
         else:
-            if not settings.anthropic_api_key:
-                return FALLBACK_MODELS[provider], "ANTHROPIC_API_KEY is not configured."
+            if not _claude_api_key():
+                return FALLBACK_MODELS[provider], (
+                    "ANTHROPIC_API_KEY/NEWAPI_API_KEY is not configured."
+                )
             payload = _json_get(
                 _anthropic_model_url(settings.anthropic_base_url),
-                {
-                    "x-api-key": settings.anthropic_api_key,
-                    "anthropic-version": "2023-06-01",
-                },
+                _claude_auth_headers(),
             )
         models = _extract_model_ids(payload)
         if not models:
@@ -272,6 +295,8 @@ def provider_status() -> dict[str, Any]:
     deepseek_models = provider_models("deepseek")
     qwen_models = provider_models("qwen")
     claude_models = provider_models("claude")
+    claude_key = _claude_api_key()
+    claude_relay = _is_claude_relay()
     return {
         "selected_provider": selected,
         "allow_mock_llm": settings.allow_mock_llm,
@@ -289,10 +314,13 @@ def provider_status() -> dict[str, Any]:
                 **qwen_models,
             },
             "claude": {
-                "configured": bool(settings.anthropic_api_key),
-                "key_configured": bool(settings.anthropic_api_key),
+                "configured": bool(claude_key),
+                "key_configured": bool(claude_key),
+                "newapi_configured": bool(settings.newapi_base_url or settings.newapi_api_key),
+                "relay_configured": claude_relay,
+                "auth_mode": "bearer" if claude_relay else "x-api-key",
                 "package_installed": ChatAnthropic is not None,
-                "http_fallback": ChatAnthropic is None and bool(settings.anthropic_api_key),
+                "http_fallback": (claude_relay or ChatAnthropic is None) and bool(claude_key),
                 "model": settings.anthropic_model,
                 "base_url": settings.anthropic_base_url or "https://api.anthropic.com",
                 **claude_models,

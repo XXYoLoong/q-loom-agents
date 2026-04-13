@@ -66,9 +66,11 @@ class Settings:
             "https://dashscope.aliyuncs.com/compatible-mode/v1",
         )
     )
+    newapi_api_key: str | None = env_value("NEWAPI_API_KEY")
+    newapi_base_url: str | None = env_value("NEWAPI_BASE_URL")
     anthropic_api_key: str | None = env_value("ANTHROPIC_API_KEY")
     anthropic_model: str = str(env_value("ANTHROPIC_MODEL", "claude-sonnet-4-6"))
-    anthropic_base_url: str | None = env_value("ANTHROPIC_BASE_URL")
+    anthropic_base_url: str | None = env_value("ANTHROPIC_BASE_URL") or newapi_base_url
     allow_mock_llm: bool = str(env_value("ALLOW_MOCK_LLM", "false")).lower() == "true"
 
 
