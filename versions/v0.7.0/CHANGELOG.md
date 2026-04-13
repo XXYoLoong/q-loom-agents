@@ -29,4 +29,4 @@
 - `/api/llm/status` 验证通过：DeepSeek 返回 2 个模型，Qwen 返回 222 个模型，Claude 识别到 `key_configured=true`。
 - Claude 当前 `package_installed=false`，模型列表请求返回 HTTPError，后端安全回退到默认 `claude-sonnet-4-6`，服务未崩溃。
 - Playwright 验证通过：provider 下拉包含 DeepSeek/Qwen/Claude，Qwen 模型下拉超过 10 项，Claude 模型下拉包含 `claude-sonnet-4-6`。
-- 待执行：GitHub 推送。
+- GitHub 推送完成：`54b9c85`，仓库 `https://github.com/XXYoLoong/q-loom-agents`。

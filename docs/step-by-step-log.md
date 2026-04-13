@@ -290,4 +290,5 @@ Q-Loom Agents
 - Runtime verification: services restarted successfully; `/api/llm/status` returned DeepSeek 2 models, Qwen 222 models, and Claude `key_configured=true` with fallback model `claude-sonnet-4-6`.
 - Note: Claude package is still not installed in the current Python environment, so `/api/llm/status` correctly reports `package_installed=false`; model list fetch returned HTTPError and used fallback instead of crashing.
 - Browser verification: Playwright confirmed provider/model linked dropdowns, including 222 Qwen model options and Claude fallback model.
-- Next step: commit and push v0.7.0.
+- Commit: created `54b9c85` with message `v0.7.0 dynamic provider model selection`.
+- Publish: pushed v0.7.0 to GitHub `origin/main`.
