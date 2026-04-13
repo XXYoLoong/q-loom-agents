@@ -26,4 +26,4 @@
 - 后端健康检查通过：`provider=deepseek`，`model=deepseek-chat`，`mock_allowed=false`。
 - `/api/llm/status` 显示 DeepSeek/Qwen 已配置，Claude 当前 `configured=false`、`key_configured=false`、`package_installed=false`，且服务未崩溃。
 - Playwright 验证通过：模型下拉包含 DeepSeek、Qwen、`Claude（未配置）`。
-- 待执行：GitHub 推送。
+- GitHub 推送完成：`00efd96`，仓库 `https://github.com/XXYoLoong/q-loom-agents`。

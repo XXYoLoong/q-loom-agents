@@ -260,3 +260,10 @@ Q-Loom Agents
 - Runtime verification: services restarted successfully; backend health remained DeepSeek with `mock_allowed=false`; `/api/llm/status` listed Claude as `configured=false`, `key_configured=false`, `package_installed=false`.
 - Browser verification: Playwright confirmed the provider dropdown contains DeepSeek, Qwen, and `Claude（未配置）`.
 - Next step: commit and push v0.6.0.
+
+### 2026-04-13 Round 33
+
+- Commit: created `00efd96` with message `v0.6.0 add claude provider`.
+- Publish: pushed v0.6.0 to GitHub `origin/main`.
+- Repository: `https://github.com/XXYoLoong/q-loom-agents`.
+- Next step: commit this documentation sync.
