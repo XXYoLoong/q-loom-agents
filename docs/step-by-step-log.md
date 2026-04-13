@@ -267,3 +267,11 @@ Q-Loom Agents
 - Publish: pushed v0.6.0 to GitHub `origin/main`.
 - Repository: `https://github.com/XXYoLoong/q-loom-agents`.
 - Next step: commit this documentation sync.
+
+### 2026-04-13 Round 34
+
+- Correction: after checking Anthropic's current model documentation, updated the default Claude model from `claude-sonnet-4-20250514` to `claude-sonnet-4-6`.
+- Version: bumped project versions to `0.6.1` for this Claude default correction.
+- Verification: `python -m compileall backend`, `npm run build`, and `git diff --check` passed.
+- Runtime verification: services restarted successfully; `/api/llm/status` reports Claude model `claude-sonnet-4-6`, while backend remains healthy on DeepSeek with `mock_allowed=false`.
+- Next step: commit and push v0.6.1.

@@ -34,7 +34,7 @@ class Settings:
         "https://dashscope.aliyuncs.com/compatible-mode/v1",
     )
     anthropic_api_key: str | None = os.getenv("ANTHROPIC_API_KEY")
-    anthropic_model: str = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-20250514")
+    anthropic_model: str = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6")
     anthropic_base_url: str | None = os.getenv("ANTHROPIC_BASE_URL")
     allow_mock_llm: bool = os.getenv("ALLOW_MOCK_LLM", "false").lower() == "true"
 
