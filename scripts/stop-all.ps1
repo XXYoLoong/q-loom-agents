@@ -26,7 +26,7 @@ function Stop-ProcessTree {
 
   $process = Get-Process -Id $ProcessId -ErrorAction SilentlyContinue
   if ($process) {
-    Stop-Process -Id $ProcessId -Force
+    Stop-Process -Id $ProcessId -Force -ErrorAction SilentlyContinue
   }
 }
 

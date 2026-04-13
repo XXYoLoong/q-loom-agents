@@ -17,15 +17,22 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.app.agents.llm import provider_status, read_call_log_tail
 from backend.app.core.config import settings
-from backend.app.graph import run_pipeline
+from backend.app.graph import run_batch_pipeline, run_pipeline
 from backend.app.schemas.review import (
     ReviewJumpRequest,
     ReviewNavigateRequest,
     ReviewSaveRequest,
     ReviewState,
 )
-from backend.app.schemas.run import AgentEvent, AgentRunRequest, AgentRunResponse
+from backend.app.schemas.run import (
+    AgentEvent,
+    AgentRunRequest,
+    AgentRunResponse,
+    BatchRunRequest,
+    BatchRunResponse,
+)
 from backend.app.services.review_store import review_store
 
 
@@ -41,8 +48,16 @@ app.add_middleware(
 
 
 @app.get("/api/health")
-def health() -> dict[str, str]:
-    return {"status": "ok", "model": settings.deepseek_model}
+def health() -> dict[str, str | bool]:
+    status_info = provider_status()
+    selected = status_info["selected_provider"]
+    model = status_info["providers"][selected]["model"]
+    return {
+        "status": "ok",
+        "provider": selected,
+        "model": model,
+        "mock_allowed": status_info["allow_mock_llm"],
+    }
 
 
 @app.get("/api/status")
@@ -58,6 +73,21 @@ def status() -> list[AgentEvent]:
 @app.post("/api/run", response_model=AgentRunResponse)
 def run(request: AgentRunRequest) -> AgentRunResponse:
     return run_pipeline(request)
+
+
+@app.post("/api/run-batch", response_model=BatchRunResponse)
+def run_batch(request: BatchRunRequest) -> BatchRunResponse:
+    return run_batch_pipeline(request)
+
+
+@app.get("/api/llm/status")
+def llm_status() -> dict:
+    return provider_status()
+
+
+@app.get("/api/llm/calls")
+def llm_calls(limit: int = 50) -> list[dict]:
+    return read_call_log_tail(limit=max(1, min(limit, 200)))
 
 
 @app.get("/api/review", response_model=ReviewState)

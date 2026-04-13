@@ -35,6 +35,54 @@ export interface AgentRunResponse {
   acceptance: Record<string, unknown>;
   audit: Record<string, unknown>;
   events: AgentEvent[];
+  review_action: "added" | "skipped_duplicate";
+}
+
+export type LlmProvider = "deepseek" | "qwen";
+
+export interface RunSettings {
+  user_message: string;
+  dataset_split: "train" | "test";
+  short_count: number;
+  medium_count: number;
+  long_count: number;
+  human_metric_A: string;
+  human_metric_B: string;
+  use_llm: boolean;
+  provider: LlmProvider;
+}
+
+export interface BatchRunResponse {
+  batch_id: string;
+  requested: Record<string, number>;
+  generated: number;
+  added_to_review: number;
+  skipped_duplicates: number;
+  responses: AgentRunResponse[];
+  events: AgentEvent[];
+}
+
+export interface LlmProviderInfo {
+  configured: boolean;
+  model: string;
+  base_url: string;
+}
+
+export interface LlmStatus {
+  selected_provider: LlmProvider;
+  allow_mock_llm: boolean;
+  providers: Record<LlmProvider, LlmProviderInfo>;
+}
+
+export interface LlmCallRecord {
+  timestamp: string;
+  provider: LlmProvider;
+  model: string;
+  purpose: string;
+  status: string;
+  reason?: string;
+  error_type?: string;
+  duration_ms: number;
 }
 
 export type ReviewDecision = "pending" | "accepted" | "rejected" | "needs_revision";

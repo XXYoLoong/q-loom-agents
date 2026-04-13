@@ -58,6 +58,14 @@ export function ReviewDesk({ state, onStateChange }: ReviewDeskProps) {
     };
   }, [decision, humanMetricA, humanMetricB, reviewerNote, sample]);
 
+  const hasUnsavedChanges = Boolean(
+    sample &&
+      (humanMetricA !== sample.human_metric_A ||
+        humanMetricB !== sample.human_metric_B ||
+        reviewerNote !== sample.reviewer_note ||
+        decision !== sample.decision),
+  );
+
   async function handleSave(action = "human_review_save") {
     if (!savePayload) {
       return;
@@ -70,14 +78,19 @@ export function ReviewDesk({ state, onStateChange }: ReviewDeskProps) {
   }
 
   async function handleNavigate(direction: "previous" | "next") {
-    if (!savePayload) {
+    if (!sample) {
       return;
     }
-    const nextState = await navigateReview(direction, {
-      ...savePayload,
-      action: direction === "next" ? "autosave_next" : "autosave_previous",
-    });
-    setSavedAt(new Date().toLocaleTimeString());
+    const nextState = await navigateReview(
+      direction,
+      hasUnsavedChanges && savePayload
+        ? {
+            ...savePayload,
+            action: direction === "next" ? "autosave_next" : "autosave_previous",
+          }
+        : undefined,
+    );
+    setSavedAt(hasUnsavedChanges ? new Date().toLocaleTimeString() : "未修改，仅切换");
     onStateChange(nextState);
   }
 
@@ -101,7 +114,7 @@ export function ReviewDesk({ state, onStateChange }: ReviewDeskProps) {
             {state.stats.needs_revision} 待修改，{state.stats.rejected} 拒绝
           </p>
         </div>
-        <span>{savedAt ? `已保存 ${savedAt}` : "自动保存上一条/下一条前的修改"}</span>
+        <span>{savedAt ? `已处理 ${savedAt}` : "只有修改后才会在上一条/下一条前保存"}</span>
       </div>
 
       <div className="sampleColumns">

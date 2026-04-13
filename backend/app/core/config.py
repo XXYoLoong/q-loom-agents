@@ -23,11 +23,17 @@ class Settings:
     """Runtime settings read from environment variables."""
 
     app_name: str = "Q-Loom Agents"
+    llm_provider: str = os.getenv("LLM_PROVIDER", "deepseek").lower()
     deepseek_api_key: str | None = os.getenv("DEEPSEEK_API_KEY")
     deepseek_model: str = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
     deepseek_base_url: str = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
-    allow_mock_llm: bool = os.getenv("ALLOW_MOCK_LLM", "true").lower() == "true"
+    qwen_api_key: str | None = os.getenv("QWEN_API_KEY") or os.getenv("DASHSCOPE_API_KEY")
+    qwen_model: str = os.getenv("QWEN_MODEL", "qwen-plus")
+    qwen_base_url: str = os.getenv(
+        "QWEN_BASE_URL",
+        "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    )
+    allow_mock_llm: bool = os.getenv("ALLOW_MOCK_LLM", "false").lower() == "true"
 
 
 settings = Settings()
-

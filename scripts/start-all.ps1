@@ -28,8 +28,8 @@ $BackendUrl = "http://127.0.0.1:8000/api/health"
 New-Item -ItemType Directory -Force -Path $LogDir, $RuntimeDir | Out-Null
 
 $env:CODEX_HOME = "F:\.codex"
-if (-not $env:ALLOW_MOCK_LLM) {
-  $env:ALLOW_MOCK_LLM = "true"
+if (-not $env:LLM_PROVIDER) {
+  $env:LLM_PROVIDER = "deepseek"
 }
 
 if (-not (Test-Path -LiteralPath (Join-Path $Root "node_modules"))) {

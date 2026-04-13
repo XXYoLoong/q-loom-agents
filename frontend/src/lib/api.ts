@@ -12,7 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import type { AgentEvent, AgentRunResponse, ReviewSavePayload, ReviewState } from "./types";
+import type {
+  AgentEvent,
+  AgentRunResponse,
+  BatchRunResponse,
+  LlmCallRecord,
+  LlmStatus,
+  ReviewSavePayload,
+  ReviewState,
+  RunSettings,
+} from "./types";
 
 export async function fetchStatus(): Promise<AgentEvent[]> {
   const response = await fetch("/api/status");
@@ -22,23 +31,55 @@ export async function fetchStatus(): Promise<AgentEvent[]> {
   return response.json();
 }
 
-export async function runAgents(): Promise<AgentRunResponse> {
+export async function runAgents(settings?: Partial<RunSettings>): Promise<AgentRunResponse> {
   const response = await fetch("/api/run", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      user_message: "你今天有没有吃早饭呀？",
-      dataset_split: "train",
-      length_type: "中",
-      human_metric_A: "",
-      human_metric_B: "",
-      use_llm: true,
+      user_message: settings?.user_message ?? "",
+      dataset_split: settings?.dataset_split ?? "train",
+      length_type:
+        (settings?.short_count ?? 0) > 0 ? "短" : (settings?.long_count ?? 0) > 0 ? "长" : "中",
+      human_metric_A: settings?.human_metric_A ?? "",
+      human_metric_B: settings?.human_metric_B ?? "",
+      use_llm: settings?.use_llm ?? true,
+      provider: settings?.provider ?? "deepseek",
     }),
   });
   if (!response.ok) {
     throw new Error("多智能体运行失败。");
+  }
+  return response.json();
+}
+
+export async function runBatch(settings: RunSettings): Promise<BatchRunResponse> {
+  const response = await fetch("/api/run-batch", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(settings),
+  });
+  if (!response.ok) {
+    throw new Error("批量生成失败。");
+  }
+  return response.json();
+}
+
+export async function fetchLlmStatus(): Promise<LlmStatus> {
+  const response = await fetch("/api/llm/status");
+  if (!response.ok) {
+    throw new Error("无法读取模型设置。");
+  }
+  return response.json();
+}
+
+export async function fetchLlmCalls(): Promise<LlmCallRecord[]> {
+  const response = await fetch("/api/llm/calls?limit=12");
+  if (!response.ok) {
+    throw new Error("无法读取模型调用记录。");
   }
   return response.json();
 }

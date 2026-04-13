@@ -15,8 +15,16 @@
 import { useEffect, useState } from "react";
 import { ReviewDesk } from "./components/ReviewDesk";
 import { WorkshopConsole } from "./components/WorkshopConsole";
-import { fetchReviewState, fetchStatus, runAgents } from "./lib/api";
-import type { AgentEvent, AgentRunResponse, ReviewState } from "./lib/types";
+import { fetchLlmCalls, fetchLlmStatus, fetchReviewState, fetchStatus, runBatch } from "./lib/api";
+import type {
+  AgentEvent,
+  AgentRunResponse,
+  BatchRunResponse,
+  LlmCallRecord,
+  LlmStatus,
+  ReviewState,
+  RunSettings,
+} from "./lib/types";
 
 const fallbackEvents: AgentEvent[] = [
   { agent: "生成 Agent", status: "idle", message: "等待生成样本", progress: 0 },
@@ -24,6 +32,18 @@ const fallbackEvents: AgentEvent[] = [
   { agent: "验收 Agent", status: "idle", message: "等待验收决策", progress: 0 },
   { agent: "监督 Agent", status: "idle", message: "等待闭环审计", progress: 0 },
 ];
+
+const defaultSettings: RunSettings = {
+  user_message: "",
+  dataset_split: "train",
+  short_count: 0,
+  medium_count: 1,
+  long_count: 0,
+  human_metric_A: "",
+  human_metric_B: "",
+  use_llm: true,
+  provider: "deepseek",
+};
 
 export function App() {
   const [events, setEvents] = useState<AgentEvent[]>(fallbackEvents);
@@ -33,6 +53,10 @@ export function App() {
   const [screenOpen, setScreenOpen] = useState(false);
   const [reviewState, setReviewState] = useState<ReviewState | null>(null);
   const [stageIndex, setStageIndex] = useState(0);
+  const [settings, setSettings] = useState<RunSettings>(defaultSettings);
+  const [batchResult, setBatchResult] = useState<BatchRunResponse | null>(null);
+  const [llmStatus, setLlmStatus] = useState<LlmStatus | null>(null);
+  const [llmCalls, setLlmCalls] = useState<LlmCallRecord[]>([]);
 
   useEffect(() => {
     fetchStatus()
@@ -41,9 +65,23 @@ export function App() {
     fetchReviewState()
       .then(setReviewState)
       .catch(() => undefined);
+    fetchLlmStatus()
+      .then((status) => {
+        setLlmStatus(status);
+        setSettings((previous) => ({ ...previous, provider: status.selected_provider }));
+      })
+      .catch(() => undefined);
+    fetchLlmCalls()
+      .then(setLlmCalls)
+      .catch(() => undefined);
   }, []);
 
   async function handleRun() {
+    const total = settings.short_count + settings.medium_count + settings.long_count;
+    if (total <= 0) {
+      setError("请至少设置 1 条短/中/长样本数量。");
+      return;
+    }
     setBusy(true);
     setError("");
     setStageIndex(0);
@@ -62,18 +100,24 @@ export function App() {
       }, index * 900);
     });
     try {
-      const response = await runAgents();
-      setResult(response);
+      const response = await runBatch(settings);
+      setBatchResult(response);
+      setResult(response.responses.at(-1) ?? null);
       window.setTimeout(() => {
         setStageIndex(5);
         setEvents(response.events.filter((event) => event.agent !== "控制台"));
       }, stagedEvents.length * 900);
       setReviewState(await fetchReviewState());
+      setLlmCalls(await fetchLlmCalls());
     } catch (runError) {
       setError(runError instanceof Error ? runError.message : "运行失败。");
     } finally {
       window.setTimeout(() => setBusy(false), stagedEvents.length * 900 + 250);
     }
+  }
+
+  function updateSetting<Key extends keyof RunSettings>(key: Key, value: RunSettings[Key]) {
+    setSettings((previous) => ({ ...previous, [key]: value }));
   }
 
   return (
@@ -86,6 +130,77 @@ export function App() {
         onRun={handleRun}
         onScreenOpen={() => setScreenOpen(true)}
       />
+      <section className="operatorPanel" aria-label="生成设置">
+        <strong>生成设置</strong>
+        <label>
+          模型
+          <select
+            value={settings.provider}
+            onChange={(event) => updateSetting("provider", event.target.value as RunSettings["provider"])}
+            disabled={busy}
+          >
+            <option value="deepseek">
+              DeepSeek{llmStatus?.providers.deepseek.configured ? "" : "（未配置）"}
+            </option>
+            <option value="qwen">Qwen{llmStatus?.providers.qwen.configured ? "" : "（未配置）"}</option>
+          </select>
+        </label>
+        <label>
+          场景
+          <span>由生成 Agent 自动模拟用户输入和上下文</span>
+        </label>
+        <div className="countGrid">
+          <label>
+            短
+            <input
+              type="number"
+              min={0}
+              max={200}
+              value={settings.short_count}
+              onChange={(event) => updateSetting("short_count", Number(event.target.value))}
+              disabled={busy}
+            />
+          </label>
+          <label>
+            中
+            <input
+              type="number"
+              min={0}
+              max={200}
+              value={settings.medium_count}
+              onChange={(event) => updateSetting("medium_count", Number(event.target.value))}
+              disabled={busy}
+            />
+          </label>
+          <label>
+            长
+            <input
+              type="number"
+              min={0}
+              max={200}
+              value={settings.long_count}
+              onChange={(event) => updateSetting("long_count", Number(event.target.value))}
+              disabled={busy}
+            />
+          </label>
+        </div>
+        <label>
+          数据集
+          <select
+            value={settings.dataset_split}
+            onChange={(event) => updateSetting("dataset_split", event.target.value as RunSettings["dataset_split"])}
+            disabled={busy}
+          >
+            <option value="train">train</option>
+            <option value="test">test</option>
+          </select>
+        </label>
+        <span>
+          {llmStatus
+            ? `${llmStatus.providers[settings.provider].model} · mock=${llmStatus.allow_mock_llm ? "on" : "off"}`
+            : "读取模型状态中"}
+        </span>
+      </section>
       {error ? <div className="errorDock">{error}</div> : null}
       {screenOpen ? (
         <div className="screenOverlay" role="dialog" aria-modal="true">
@@ -106,7 +221,26 @@ export function App() {
               ))}
             </div>
             <ReviewDesk state={reviewState} onStateChange={setReviewState} />
-            <pre>{result ? JSON.stringify(result, null, 2) : "尚未运行。点击小人或启动闭环开始。"}</pre>
+            <section className="llmAudit">
+              <h2>模型调用记录</h2>
+              {llmCalls.length ? (
+                llmCalls.map((call) => (
+                  <p key={`${call.timestamp}-${call.purpose}-${call.duration_ms}`}>
+                    {call.timestamp} · {call.provider}/{call.model} · {call.purpose} · {call.status} ·{" "}
+                    {call.duration_ms}ms
+                  </p>
+                ))
+              ) : (
+                <p>暂无调用记录。真实调用后会写入 output/llm_calls。</p>
+              )}
+            </section>
+            <pre>
+              {batchResult
+                ? JSON.stringify(batchResult, null, 2)
+                : result
+                  ? JSON.stringify(result, null, 2)
+                  : "尚未运行。点击小人或启动闭环开始。"}
+            </pre>
           </section>
         </div>
       ) : null}

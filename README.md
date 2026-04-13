@@ -34,6 +34,8 @@ examples/
 4. 验收 Agent 读取 `agents/03_acceptance_agent.md`，整合生成结果与质检结果，输出 `accept` 或 `reject`。
 5. 监督 Agent 读取 `agents/04_supervisor_agent.md`，审核前三个 Agent 的行为、结论和偏差，输出 `audit_report` 与纠偏指令。
 6. 若人工在 `human_metric_A` 填入指导意见，下一轮先把它标准化为 `human_metric_B`，再让四类 Agent 自适应调整。
+7. 批量生成时可在 3D 工作坊左下角设置短/中/长数量；用户输入和上下文场景由生成 Agent 自动模拟，不需要人工手动填写。
+8. 质量监测 Agent 会对已有样本做近重复检查，语义高度相同的样本不会重复进入人工审查队列。
 
 ## 一键启动
 
@@ -53,6 +55,17 @@ start-all.bat
 
 - 后端：`http://127.0.0.1:8000`
 - 前端 3D 工作坊：`http://127.0.0.1:5173`
+
+默认模型供应商为 DeepSeek，可通过环境变量切换：
+
+```powershell
+$env:LLM_PROVIDER="deepseek" # 或 qwen
+$env:DEEPSEEK_API_KEY="..."
+$env:DASHSCOPE_API_KEY="..." # Qwen 兼容模式，也可用 QWEN_API_KEY
+```
+
+真实模型调用会记录到 `output/llm_calls/*.jsonl`。默认不启用 mock；只有显式设置
+`ALLOW_MOCK_LLM=true` 时才允许无 key fallback。
 
 停止：
 

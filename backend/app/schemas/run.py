@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class AgentEvent(BaseModel):
@@ -27,12 +27,13 @@ class AgentEvent(BaseModel):
 
 
 class AgentRunRequest(BaseModel):
-    user_message: str = "你今天有没有吃早饭呀？"
+    user_message: str = ""
     dataset_split: Literal["train", "test"] = "train"
     length_type: str = "中"
     human_metric_A: str = ""
     human_metric_B: str = ""
     use_llm: bool = True
+    provider: Literal["deepseek", "qwen"] = "deepseek"
 
     @field_validator("length_type")
     @classmethod
@@ -57,4 +58,33 @@ class AgentRunResponse(BaseModel):
     quality_report: dict[str, Any]
     acceptance: dict[str, Any]
     audit: dict[str, Any]
+    events: list[AgentEvent]
+    review_action: Literal["added", "skipped_duplicate"] = "added"
+
+
+class BatchRunRequest(BaseModel):
+    user_message: str = ""
+    dataset_split: Literal["train", "test"] = "train"
+    short_count: int = Field(default=0, ge=0, le=200)
+    medium_count: int = Field(default=1, ge=0, le=200)
+    long_count: int = Field(default=0, ge=0, le=200)
+    human_metric_A: str = ""
+    human_metric_B: str = ""
+    use_llm: bool = True
+    provider: Literal["deepseek", "qwen"] = "deepseek"
+
+    @model_validator(mode="after")
+    def require_at_least_one_sample(self) -> "BatchRunRequest":
+        if self.short_count + self.medium_count + self.long_count <= 0:
+            raise ValueError("At least one sample count must be greater than 0.")
+        return self
+
+
+class BatchRunResponse(BaseModel):
+    batch_id: str
+    requested: dict[str, int]
+    generated: int
+    added_to_review: int
+    skipped_duplicates: int
+    responses: list[AgentRunResponse]
     events: list[AgentEvent]

@@ -34,6 +34,17 @@ from backend.app.schemas.review import (
 REVIEW_DIR = ROOT / "output" / "review"
 REVIEW_FILE = REVIEW_DIR / "review_state.json"
 EXAMPLE_FILE = ROOT / "examples" / "sample_record.readable.json"
+_KNOWN_TEST_VALUES = {
+    "manual-A-v040-final",
+    "standard-B-v040-final",
+    "note-v040-final",
+    "Playwright review save test",
+    "v0.4 browser persistence test",
+    "v0.4 persistence smoke test",
+}
+_KNOWN_TEST_ACTIONS = {
+    "persistence_smoke_save",
+}
 
 
 def now_iso() -> str:
@@ -76,6 +87,53 @@ def _seed_samples() -> list[ReviewSample]:
     return samples
 
 
+def _is_noise_value(value: str) -> bool:
+    stripped = value.strip()
+    if not stripped:
+        return False
+    return stripped in _KNOWN_TEST_VALUES or (len(stripped) >= 4 and set(stripped) == {"?"})
+
+
+def _repair_local_test_artifacts(samples: list[ReviewSample]) -> bool:
+    repaired = False
+    for sample in samples:
+        history_has_test_action = any(entry.action in _KNOWN_TEST_ACTIONS for entry in sample.history)
+        clean_history = [
+            entry
+            for entry in sample.history
+            if entry.action not in _KNOWN_TEST_ACTIONS and not _is_noise_value(entry.note)
+        ]
+        has_noise = any(
+            _is_noise_value(value)
+            for value in [sample.human_metric_A, sample.human_metric_B, sample.reviewer_note]
+        )
+        history_changed = len(clean_history) != len(sample.history)
+        if not has_noise and not history_has_test_action and not history_changed:
+            continue
+
+        sample.history = clean_history
+        if _is_noise_value(sample.human_metric_A):
+            sample.human_metric_A = ""
+            sample.payload["human_metric_A"] = ""
+        if _is_noise_value(sample.human_metric_B):
+            sample.human_metric_B = ""
+            sample.payload["human_metric_B"] = ""
+        if _is_noise_value(sample.reviewer_note):
+            sample.reviewer_note = ""
+        if sample.decision == "needs_revision" and (has_noise or history_has_test_action):
+            sample.decision = "pending"
+        sample.updated_at = now_iso()
+        sample.history.append(
+            ReviewHistoryEntry(
+                timestamp=now_iso(),
+                action="repair_local_test_artifact",
+                note="Removed local smoke-test review values.",
+            )
+        )
+        repaired = True
+    return repaired
+
+
 class ReviewStore:
     def __init__(self, path: Path = REVIEW_FILE) -> None:
         self.path = path
@@ -100,12 +158,15 @@ class ReviewStore:
             current_index = min(max(current_index, 0), len(samples) - 1)
         else:
             current_index = 0
-        return ReviewState(
+        state = ReviewState(
             current_index=current_index,
             samples=samples,
             stats=_stats(samples),
             storage_path=str(self.path),
         )
+        if _repair_local_test_artifacts(state.samples):
+            return self.save_state(state)
+        return state
 
     def save_state(self, state: ReviewState) -> ReviewState:
         state.stats = _stats(state.samples)
@@ -197,4 +258,3 @@ class ReviewStore:
 
 
 review_store = ReviewStore()
-
