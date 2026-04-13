@@ -1,6 +1,6 @@
 [project]
 name = "q-loom-agents"
-version = "0.5.0"
+version = "0.6.0"
 description = "LangChain and LangGraph multi-agent pipeline with a Q-style 3D operations console."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -15,6 +15,7 @@ dependencies = [
   "langchain>=0.3.0",
   "langgraph>=0.2.0",
   "langchain-deepseek>=0.1.0",
+  "langchain-anthropic>=0.3.0",
   "langchain-openai>=0.2.0",
   "langchain-core>=0.3.0"
 ]

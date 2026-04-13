@@ -38,7 +38,7 @@ export interface AgentRunResponse {
   review_action: "added" | "skipped_duplicate";
 }
 
-export type LlmProvider = "deepseek" | "qwen";
+export type LlmProvider = "deepseek" | "qwen" | "claude";
 
 export interface RunSettings {
   user_message: string;
@@ -64,6 +64,8 @@ export interface BatchRunResponse {
 
 export interface LlmProviderInfo {
   configured: boolean;
+  key_configured?: boolean;
+  package_installed?: boolean;
   model: string;
   base_url: string;
 }

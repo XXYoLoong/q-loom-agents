@@ -143,6 +143,9 @@ export function App() {
               DeepSeek{llmStatus?.providers.deepseek.configured ? "" : "（未配置）"}
             </option>
             <option value="qwen">Qwen{llmStatus?.providers.qwen.configured ? "" : "（未配置）"}</option>
+            <option value="claude">
+              Claude{llmStatus?.providers.claude.configured ? "" : "（未配置）"}
+            </option>
           </select>
         </label>
         <label>

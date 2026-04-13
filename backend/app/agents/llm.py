@@ -24,6 +24,10 @@ from typing import Any
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_deepseek import ChatDeepSeek
 from langchain_openai import ChatOpenAI
+try:
+    from langchain_anthropic import ChatAnthropic
+except ModuleNotFoundError:  # pragma: no cover - optional provider dependency
+    ChatAnthropic = None  # type: ignore[assignment]
 
 from backend.app.core.config import settings
 from backend.app.agents.prompt_loader import ROOT
@@ -38,7 +42,9 @@ def _now_iso() -> str:
 
 def _normal_provider(provider: str | None = None) -> str:
     value = (provider or settings.llm_provider or "deepseek").lower()
-    if value not in {"deepseek", "qwen"}:
+    aliases = {"anthropic": "claude"}
+    value = aliases.get(value, value)
+    if value not in {"deepseek", "qwen", "claude"}:
         return "deepseek"
     return value
 
@@ -65,10 +71,25 @@ def build_qwen_llm() -> ChatOpenAI | None:
     )
 
 
+def build_claude_llm() -> Any | None:
+    if ChatAnthropic is None or not settings.anthropic_api_key:
+        return None
+    kwargs: dict[str, Any] = {
+        "model": settings.anthropic_model,
+        "anthropic_api_key": settings.anthropic_api_key,
+        "temperature": 0.7,
+    }
+    if settings.anthropic_base_url:
+        kwargs["anthropic_api_url"] = settings.anthropic_base_url
+    return ChatAnthropic(**kwargs)
+
+
 def build_llm(provider: str | None = None) -> tuple[Any | None, str, str]:
     selected = _normal_provider(provider)
     if selected == "qwen":
         return build_qwen_llm(), "qwen", settings.qwen_model
+    if selected == "claude":
+        return build_claude_llm(), "claude", settings.anthropic_model
     return build_deepseek_llm(), "deepseek", settings.deepseek_model
 
 
@@ -87,6 +108,13 @@ def provider_status() -> dict[str, Any]:
                 "configured": bool(settings.qwen_api_key),
                 "model": settings.qwen_model,
                 "base_url": settings.qwen_base_url,
+            },
+            "claude": {
+                "configured": bool(settings.anthropic_api_key) and ChatAnthropic is not None,
+                "key_configured": bool(settings.anthropic_api_key),
+                "package_installed": ChatAnthropic is not None,
+                "model": settings.anthropic_model,
+                "base_url": settings.anthropic_base_url or "https://api.anthropic.com",
             },
         },
     }

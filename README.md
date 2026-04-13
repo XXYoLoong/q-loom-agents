@@ -62,6 +62,8 @@ start-all.bat
 $env:LLM_PROVIDER="deepseek" # 或 qwen
 $env:DEEPSEEK_API_KEY="..."
 $env:DASHSCOPE_API_KEY="..." # Qwen 兼容模式，也可用 QWEN_API_KEY
+$env:ANTHROPIC_API_KEY="..." # Claude
+$env:ANTHROPIC_MODEL="claude-sonnet-4-20250514"
 ```
 
 真实模型调用会记录到 `output/llm_calls/*.jsonl`。默认不启用 mock；只有显式设置

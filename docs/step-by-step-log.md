@@ -240,3 +240,23 @@ Q-Loom Agents
 - Repository: `https://github.com/XXYoLoong/q-loom-agents`.
 - Documentation sync: created and pushed `f0a1772` with message `docs record v0.5.0 publish`.
 - Delivery state: v0.5.0 is published; local services are running for review.
+
+### 2026-04-13 Round 31
+
+- Request received: add `ANTHROPIC_API_KEY` support and Claude model selection.
+- Research: checked Anthropic docs for API model IDs and LangChain docs for `ChatAnthropic`; stable default chosen as `claude-sonnet-4-20250514`, with `ANTHROPIC_MODEL` override.
+- Environment check: current process has DeepSeek and DashScope keys, but no `ANTHROPIC_API_KEY`; `langchain_anthropic` is not installed in the current Python environment.
+- v0.6.0 target: add Claude/Anthropic as a third provider without breaking current DeepSeek/Qwen runtime when the Anthropic package or key is absent.
+- Next step: update backend provider config, LLM factory, schemas, frontend provider selection, docs, and version records.
+
+### 2026-04-13 Round 32
+
+- Backend: added Claude provider support with `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, and optional `ANTHROPIC_BASE_URL`.
+- Backend: added optional `langchain_anthropic` import handling; Claude status reports both `key_configured` and `package_installed`.
+- Frontend: model selector now includes Claude and displays it as unconfigured when the key or provider package is missing.
+- Docs: README and v0.6.0 changelog now include Anthropic/Claude setup.
+- Version: bumped frontend and Python project versions to `0.6.0`; added `langchain-anthropic` to Python dependencies.
+- Verification: `python -m compileall backend`, `npm run build`, and `git diff --check` passed.
+- Runtime verification: services restarted successfully; backend health remained DeepSeek with `mock_allowed=false`; `/api/llm/status` listed Claude as `configured=false`, `key_configured=false`, `package_installed=false`.
+- Browser verification: Playwright confirmed the provider dropdown contains DeepSeek, Qwen, and `Claude（未配置）`.
+- Next step: commit and push v0.6.0.
