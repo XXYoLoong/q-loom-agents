@@ -304,3 +304,14 @@ Q-Loom Agents
 - Note: Claude model-list endpoint still returned HTTPError, so the model dropdown uses fallback `claude-sonnet-4-6` until the provider accepts the model-list request.
 - Commit: created `0d8f266` with message `v0.7.1 add claude http fallback`.
 - Publish: pushed v0.7.1 to GitHub `origin/main`.
+
+### 2026-04-13 Round 37
+
+- Request received: user pointed out that the Claude key should have many applicable models, while the UI only showed `claude-sonnet-4-6`.
+- Root cause: Anthropic `/v1/models` returned HTTPError, and the fallback Claude model list only contained a single model.
+- Fix: expanded Claude fallback list to current/common Claude model IDs and changed HTTPError reporting to include status code plus response-body snippet.
+- Version: bumped project versions to `0.7.2`.
+- Verification: `python -m compileall backend`, `npm run build`, and `git diff --check` passed.
+- Runtime verification: `/api/llm/status` now returns 13 Claude fallback models; Anthropic model-list error is explicit: `HTTP 401 invalid x-api-key`.
+- Browser verification: Playwright confirmed the Claude model dropdown has 13 options, including `claude-opus-4-6` and `claude-sonnet-4-6`.
+- Next step: commit and push v0.7.2.

@@ -40,7 +40,21 @@ MODEL_CACHE: dict[str, tuple[float, list[str], str | None]] = {}
 FALLBACK_MODELS = {
     "deepseek": ["deepseek-chat", "deepseek-reasoner"],
     "qwen": ["qwen-plus", "qwen-max", "qwen-turbo", "qwen-long"],
-    "claude": ["claude-sonnet-4-6"],
+    "claude": [
+        "claude-opus-4-6",
+        "claude-sonnet-4-6",
+        "claude-haiku-4-5-20251001",
+        "claude-haiku-4-5",
+        "claude-opus-4-1-20250805",
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-20250514",
+        "claude-3-7-sonnet-20250219",
+        "claude-3-7-sonnet-latest",
+        "claude-3-5-sonnet-20241022",
+        "claude-3-5-haiku-20241022",
+        "claude-3-5-haiku-latest",
+        "claude-3-haiku-20240307",
+    ],
 }
 
 
@@ -234,7 +248,10 @@ def _fetch_provider_models(provider: str) -> tuple[list[str], str | None]:
         if not models:
             return FALLBACK_MODELS[provider], "Provider returned no model IDs."
         return models, None
-    except (OSError, TimeoutError, error.URLError, error.HTTPError, json.JSONDecodeError) as exc:
+    except error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")[:240]
+        return FALLBACK_MODELS[provider], f"HTTP {exc.code}: {body}"
+    except (OSError, TimeoutError, error.URLError, json.JSONDecodeError) as exc:
         return FALLBACK_MODELS[provider], f"{type(exc).__name__}: model list fallback used."
 
 
