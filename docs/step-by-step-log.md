@@ -276,3 +276,18 @@ Q-Loom Agents
 - Runtime verification: services restarted successfully; `/api/llm/status` reports Claude model `claude-sonnet-4-6`, while backend remains healthy on DeepSeek with `mock_allowed=false`.
 - Commit: created `bdb182c` with message `v0.6.1 update claude default model`.
 - Publish: pushed v0.6.1 to GitHub `origin/main`.
+
+### 2026-04-13 Round 35
+
+- Request clarification: user said `ANTHROPIC_API_KEY` is set in system environment variables and asked to list all models callable by each provider API key.
+- Diagnosis: reading only process environment can miss Windows User/Machine variables; a single provider dropdown is not enough because concrete model IDs must be selectable.
+- Backend: added Process/User/Machine environment lookup on Windows.
+- Backend: added model discovery for DeepSeek and Qwen via OpenAI-compatible `/models`, and Claude via Anthropic `/v1/models`, with safe fallback lists and error strings.
+- API: `/api/llm/status` now returns model lists per provider; `/api/llm/models/{provider}?refresh=true` can force refresh.
+- Pipeline: `AgentRunRequest` and `BatchRunRequest` now carry a concrete `model`; LangGraph passes the selected model to all four LLM calls and audit records.
+- Frontend: added second-level model selector linked to provider selection.
+- Verification: `python -m compileall backend`, `npm run build`, and `git diff --check` passed.
+- Runtime verification: services restarted successfully; `/api/llm/status` returned DeepSeek 2 models, Qwen 222 models, and Claude `key_configured=true` with fallback model `claude-sonnet-4-6`.
+- Note: Claude package is still not installed in the current Python environment, so `/api/llm/status` correctly reports `package_installed=false`; model list fetch returned HTTPError and used fallback instead of crashing.
+- Browser verification: Playwright confirmed provider/model linked dropdowns, including 222 Qwen model options and Claude fallback model.
+- Next step: commit and push v0.7.0.

@@ -50,6 +50,7 @@ export interface RunSettings {
   human_metric_B: string;
   use_llm: boolean;
   provider: LlmProvider;
+  model: string;
 }
 
 export interface BatchRunResponse {
@@ -68,6 +69,8 @@ export interface LlmProviderInfo {
   package_installed?: boolean;
   model: string;
   base_url: string;
+  models: string[];
+  models_error?: string | null;
 }
 
 export interface LlmStatus {

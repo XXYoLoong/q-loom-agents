@@ -138,6 +138,7 @@ def _standardize_human_metric(request: dict[str, Any]) -> str:
         f"人工指标 A：{metric_a}\n请输出字段 human_metric_B。",
         fallback,
         provider=request.get("provider"),
+        model=request.get("model"),
         use_llm=bool(request.get("use_llm", True)),
         purpose="standardize_human_metric",
     )
@@ -155,6 +156,7 @@ def _ensure_sample_metadata(sample: dict[str, Any], request: dict[str, Any], run
     sample["human_metric_A"] = request.get("human_metric_A", "")
     sample["human_metric_B"] = request.get("human_metric_B") or sample.get("human_metric_B", "")
     sample["source_model_provider"] = request.get("provider", "deepseek")
+    sample["source_model"] = request.get("model") or sample.get("source_model", "")
     return sample
 
 
@@ -197,6 +199,7 @@ def generator_node(state: PipelineState) -> PipelineState:
         prompt,
         fallback,
         provider=request.get("provider"),
+        model=request.get("model"),
         use_llm=bool(request.get("use_llm", True)),
         purpose="generator",
     )
@@ -234,6 +237,7 @@ def quality_node(state: PipelineState) -> PipelineState:
         f"请只输出质量监测 JSON 对象。样本：{sample}\n近重复检测：{duplicate_report}",
         fallback,
         provider=state["request"].get("provider"),
+        model=state["request"].get("model"),
         use_llm=bool(state["request"].get("use_llm", True)),
         purpose="quality_monitor",
     )
@@ -267,6 +271,7 @@ def acceptance_node(state: PipelineState) -> PipelineState:
         f"请只输出验收 JSON 对象。样本：{sample}\n质量报告：{quality_report}",
         fallback,
         provider=state["request"].get("provider"),
+        model=state["request"].get("model"),
         use_llm=bool(state["request"].get("use_llm", True)),
         purpose="acceptance",
     )
@@ -309,6 +314,7 @@ def supervisor_node(state: PipelineState) -> PipelineState:
         f"请只输出监督 JSON 对象。样本：{sample}\n质检：{quality_report}\n验收：{acceptance}",
         fallback,
         provider=state["request"].get("provider"),
+        model=state["request"].get("model"),
         use_llm=bool(state["request"].get("use_llm", True)),
         purpose="supervisor",
     )
@@ -377,6 +383,7 @@ def run_batch_pipeline(request: BatchRunRequest) -> BatchRunResponse:
                         human_metric_B=request.human_metric_B,
                         use_llm=request.use_llm,
                         provider=request.provider,
+                        model=request.model,
                     )
                 )
             )

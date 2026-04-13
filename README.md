@@ -69,6 +69,12 @@ $env:ANTHROPIC_MODEL="claude-sonnet-4-6"
 真实模型调用会记录到 `output/llm_calls/*.jsonl`。默认不启用 mock；只有显式设置
 `ALLOW_MOCK_LLM=true` 时才允许无 key fallback。
 
+后端会使用各 provider 的模型列表接口读取当前 API key 可调用模型，并在前端模型下拉中展示：
+
+- DeepSeek：OpenAI-compatible `/models`
+- Qwen：DashScope OpenAI-compatible `/models`
+- Claude：Anthropic `/v1/models`
+
 停止：
 
 ```powershell

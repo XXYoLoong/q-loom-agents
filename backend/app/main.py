@@ -17,7 +17,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.app.agents.llm import provider_status, read_call_log_tail
+from backend.app.agents.llm import provider_models, provider_status, read_call_log_tail
 from backend.app.core.config import settings
 from backend.app.graph import run_batch_pipeline, run_pipeline
 from backend.app.schemas.review import (
@@ -83,6 +83,11 @@ def run_batch(request: BatchRunRequest) -> BatchRunResponse:
 @app.get("/api/llm/status")
 def llm_status() -> dict:
     return provider_status()
+
+
+@app.get("/api/llm/models/{provider}")
+def llm_models(provider: str, refresh: bool = False) -> dict:
+    return provider_models(provider, force_refresh=refresh)
 
 
 @app.get("/api/llm/calls")

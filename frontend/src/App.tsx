@@ -43,6 +43,7 @@ const defaultSettings: RunSettings = {
   human_metric_B: "",
   use_llm: true,
   provider: "deepseek",
+  model: "deepseek-chat",
 };
 
 export function App() {
@@ -68,7 +69,9 @@ export function App() {
     fetchLlmStatus()
       .then((status) => {
         setLlmStatus(status);
-        setSettings((previous) => ({ ...previous, provider: status.selected_provider }));
+        const provider = status.selected_provider;
+        const model = status.providers[provider].models[0] ?? status.providers[provider].model;
+        setSettings((previous) => ({ ...previous, provider, model }));
       })
       .catch(() => undefined);
     fetchLlmCalls()
@@ -120,6 +123,11 @@ export function App() {
     setSettings((previous) => ({ ...previous, [key]: value }));
   }
 
+  function updateProvider(provider: RunSettings["provider"]) {
+    const model = llmStatus?.providers[provider].models[0] ?? llmStatus?.providers[provider].model ?? "";
+    setSettings((previous) => ({ ...previous, provider, model }));
+  }
+
   return (
     <main className="workshopShell">
       <WorkshopConsole
@@ -136,7 +144,7 @@ export function App() {
           模型
           <select
             value={settings.provider}
-            onChange={(event) => updateSetting("provider", event.target.value as RunSettings["provider"])}
+            onChange={(event) => updateProvider(event.target.value as RunSettings["provider"])}
             disabled={busy}
           >
             <option value="deepseek">
@@ -146,6 +154,23 @@ export function App() {
             <option value="claude">
               Claude{llmStatus?.providers.claude.configured ? "" : "（未配置）"}
             </option>
+          </select>
+        </label>
+        <label>
+          模型
+          <select
+            value={settings.model}
+            onChange={(event) => updateSetting("model", event.target.value)}
+            disabled={busy}
+          >
+            {(llmStatus?.providers[settings.provider].models.length
+              ? llmStatus.providers[settings.provider].models
+              : [llmStatus?.providers[settings.provider].model ?? settings.model]
+            ).map((model) => (
+              <option key={model} value={model}>
+                {model}
+              </option>
+            ))}
           </select>
         </label>
         <label>
@@ -200,7 +225,11 @@ export function App() {
         </label>
         <span>
           {llmStatus
-            ? `${llmStatus.providers[settings.provider].model} · mock=${llmStatus.allow_mock_llm ? "on" : "off"}`
+            ? `${settings.model} · mock=${llmStatus.allow_mock_llm ? "on" : "off"}${
+                llmStatus.providers[settings.provider].models_error
+                  ? ` · ${llmStatus.providers[settings.provider].models_error}`
+                  : ""
+              }`
             : "读取模型状态中"}
         </span>
       </section>

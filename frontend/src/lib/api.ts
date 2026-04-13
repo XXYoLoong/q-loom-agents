@@ -46,6 +46,7 @@ export async function runAgents(settings?: Partial<RunSettings>): Promise<AgentR
       human_metric_B: settings?.human_metric_B ?? "",
       use_llm: settings?.use_llm ?? true,
       provider: settings?.provider ?? "deepseek",
+      model: settings?.model || undefined,
     }),
   });
   if (!response.ok) {

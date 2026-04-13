@@ -34,6 +34,7 @@ class AgentRunRequest(BaseModel):
     human_metric_B: str = ""
     use_llm: bool = True
     provider: Literal["deepseek", "qwen", "claude"] = "deepseek"
+    model: str | None = None
 
     @field_validator("length_type")
     @classmethod
@@ -72,6 +73,7 @@ class BatchRunRequest(BaseModel):
     human_metric_B: str = ""
     use_llm: bool = True
     provider: Literal["deepseek", "qwen", "claude"] = "deepseek"
+    model: str | None = None
 
     @model_validator(mode="after")
     def require_at_least_one_sample(self) -> "BatchRunRequest":
