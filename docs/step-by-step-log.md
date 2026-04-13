@@ -292,3 +292,14 @@ Q-Loom Agents
 - Browser verification: Playwright confirmed provider/model linked dropdowns, including 222 Qwen model options and Claude fallback model.
 - Commit: created `54b9c85` with message `v0.7.0 dynamic provider model selection`.
 - Publish: pushed v0.7.0 to GitHub `origin/main`.
+
+### 2026-04-13 Round 36
+
+- Follow-up diagnosis: although the project now declares `langchain-anthropic`, the current Python environment still does not have it installed; selecting Claude would not be callable immediately.
+- Backend: added `_HttpClaudeClient` fallback using Anthropic `/v1/messages`, so an available `ANTHROPIC_API_KEY` can call Claude even before installing `langchain_anthropic`.
+- API: Claude status now includes `http_fallback` to make this runtime path visible.
+- Version: bumped project versions to `0.7.1`.
+- Verification: `python -m compileall backend`, `npm run build`, and `git diff --check` passed.
+- Runtime verification: services restarted successfully; `/api/llm/status` reports Claude `configured=true`, `key_configured=true`, `package_installed=false`, `http_fallback=true`.
+- Note: Claude model-list endpoint still returned HTTPError, so the model dropdown uses fallback `claude-sonnet-4-6` until the provider accepts the model-list request.
+- Next step: commit and push v0.7.1.

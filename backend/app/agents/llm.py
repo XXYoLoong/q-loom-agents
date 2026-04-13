@@ -44,6 +44,51 @@ FALLBACK_MODELS = {
 }
 
 
+class _HttpClaudeResponse:
+    def __init__(self, content: str) -> None:
+        self.content = content
+
+
+class _HttpClaudeClient:
+    def __init__(self, model: str, temperature: float = 0.7) -> None:
+        self.model = model
+        self.temperature = temperature
+
+    def invoke(self, messages: list[Any]) -> _HttpClaudeResponse:
+        system_parts: list[str] = []
+        user_parts: list[str] = []
+        for message in messages:
+            content = str(getattr(message, "content", ""))
+            if isinstance(message, SystemMessage):
+                system_parts.append(content)
+            else:
+                user_parts.append(content)
+        payload = {
+            "model": self.model,
+            "max_tokens": 4096,
+            "temperature": self.temperature,
+            "system": "\n".join(system_parts),
+            "messages": [{"role": "user", "content": "\n".join(user_parts)}],
+        }
+        response = _json_post(
+            _anthropic_message_url(settings.anthropic_base_url),
+            {
+                "x-api-key": settings.anthropic_api_key or "",
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            payload,
+            timeout=120,
+        )
+        content_blocks = response.get("content", [])
+        text = "".join(
+            str(block.get("text", ""))
+            for block in content_blocks
+            if isinstance(block, dict) and block.get("type") == "text"
+        )
+        return _HttpClaudeResponse(text)
+
+
 def _now_iso() -> str:
     return datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
 
@@ -80,10 +125,13 @@ def build_qwen_llm(model: str | None = None) -> ChatOpenAI | None:
 
 
 def build_claude_llm(model: str | None = None) -> Any | None:
-    if ChatAnthropic is None or not settings.anthropic_api_key:
+    if not settings.anthropic_api_key:
         return None
+    selected_model = model or settings.anthropic_model
+    if ChatAnthropic is None:
+        return _HttpClaudeClient(selected_model)
     kwargs: dict[str, Any] = {
-        "model": model or settings.anthropic_model,
+        "model": selected_model,
         "anthropic_api_key": settings.anthropic_api_key,
         "temperature": 0.7,
     }
@@ -110,6 +158,22 @@ def _json_get(url: str, headers: dict[str, str], timeout: int = 12) -> dict[str,
         return json.loads(response.read().decode("utf-8"))
 
 
+def _json_post(
+    url: str,
+    headers: dict[str, str],
+    payload: dict[str, Any],
+    timeout: int = 120,
+) -> dict[str, Any]:
+    req = request.Request(
+        url,
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        headers=headers,
+        method="POST",
+    )
+    with request.urlopen(req, timeout=timeout) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
 def _openai_compatible_model_url(base_url: str) -> str:
     clean = base_url.rstrip("/")
     return f"{clean}/models"
@@ -120,6 +184,13 @@ def _anthropic_model_url(base_url: str | None) -> str:
     if clean.endswith("/v1"):
         return f"{clean}/models"
     return f"{clean}/v1/models"
+
+
+def _anthropic_message_url(base_url: str | None) -> str:
+    clean = (base_url or "https://api.anthropic.com").rstrip("/")
+    if clean.endswith("/v1"):
+        return f"{clean}/messages"
+    return f"{clean}/v1/messages"
 
 
 def _extract_model_ids(payload: dict[str, Any]) -> list[str]:
@@ -201,9 +272,10 @@ def provider_status() -> dict[str, Any]:
                 **qwen_models,
             },
             "claude": {
-                "configured": bool(settings.anthropic_api_key) and ChatAnthropic is not None,
+                "configured": bool(settings.anthropic_api_key),
                 "key_configured": bool(settings.anthropic_api_key),
                 "package_installed": ChatAnthropic is not None,
+                "http_fallback": ChatAnthropic is None and bool(settings.anthropic_api_key),
                 "model": settings.anthropic_model,
                 "base_url": settings.anthropic_base_url or "https://api.anthropic.com",
                 **claude_models,

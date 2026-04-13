@@ -67,6 +67,7 @@ export interface LlmProviderInfo {
   configured: boolean;
   key_configured?: boolean;
   package_installed?: boolean;
+  http_fallback?: boolean;
   model: string;
   base_url: string;
   models: string[];
