@@ -19,4 +19,4 @@
 - 服务重启通过，后端健康检查通过。
 - `/api/llm/status` 显示 Claude `configured=true`、`key_configured=true`、`package_installed=false`、`http_fallback=true`。
 - Claude 模型列表接口仍返回 HTTPError，因此模型列表安全回退到 `claude-sonnet-4-6`。
-- 待执行：GitHub 推送。
+- GitHub 推送完成：`0d8f266`，仓库 `https://github.com/XXYoLoong/q-loom-agents`。

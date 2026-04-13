@@ -302,4 +302,5 @@ Q-Loom Agents
 - Verification: `python -m compileall backend`, `npm run build`, and `git diff --check` passed.
 - Runtime verification: services restarted successfully; `/api/llm/status` reports Claude `configured=true`, `key_configured=true`, `package_installed=false`, `http_fallback=true`.
 - Note: Claude model-list endpoint still returned HTTPError, so the model dropdown uses fallback `claude-sonnet-4-6` until the provider accepts the model-list request.
-- Next step: commit and push v0.7.1.
+- Commit: created `0d8f266` with message `v0.7.1 add claude http fallback`.
+- Publish: pushed v0.7.1 to GitHub `origin/main`.
