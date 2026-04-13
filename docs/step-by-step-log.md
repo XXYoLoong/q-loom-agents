@@ -331,3 +331,10 @@ Q-Loom Agents
 - Runtime caveat: current machine has `ANTHROPIC_API_KEY`, but no `NEWAPI_BASE_URL`, `NEWAPI_API_KEY`, or `ANTHROPIC_BASE_URL`, so Claude correctly reports `auth_mode=x-api-key` and `newapi_configured=false`.
 - Relay probe: with dummy process-only `NEWAPI_BASE_URL`, backend helper routing resolves Claude to `/v1/models`, `/v1/messages`, and `Authorization` auth mode.
 - Next step: commit and push v0.7.3, then record the publish commit.
+
+### 2026-04-13 Round 39
+
+- Commit: created `f56de22` with message `v0.7.3 support newapi claude relay`.
+- Publish: pushed v0.7.3 to GitHub `origin/main`.
+- Repository: `https://github.com/XXYoLoong/q-loom-agents`.
+- Delivery state: local stack is running; backend health and frontend HTTP checks both passed after this release.
