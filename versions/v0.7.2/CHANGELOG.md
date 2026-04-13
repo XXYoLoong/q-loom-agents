@@ -20,4 +20,4 @@
 - `/api/llm/status` 显示 Claude fallback 模型数量为 13。
 - Anthropic `/v1/models` 返回 `HTTP 401 invalid x-api-key`，错误详情已透出到 `models_error`。
 - Playwright 验证通过：Claude 模型下拉显示 13 项，包含 `claude-opus-4-6` 与 `claude-sonnet-4-6`。
-- 待执行：GitHub 推送。
+- GitHub 推送完成：`6a024b6`，仓库 `https://github.com/XXYoLoong/q-loom-agents`。

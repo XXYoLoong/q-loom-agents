@@ -314,4 +314,5 @@ Q-Loom Agents
 - Verification: `python -m compileall backend`, `npm run build`, and `git diff --check` passed.
 - Runtime verification: `/api/llm/status` now returns 13 Claude fallback models; Anthropic model-list error is explicit: `HTTP 401 invalid x-api-key`.
 - Browser verification: Playwright confirmed the Claude model dropdown has 13 options, including `claude-opus-4-6` and `claude-sonnet-4-6`.
-- Next step: commit and push v0.7.2.
+- Commit: created `6a024b6` with message `v0.7.2 expand claude fallback models`.
+- Publish: pushed v0.7.2 to GitHub `origin/main`.
